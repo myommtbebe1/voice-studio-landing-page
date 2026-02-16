@@ -3,20 +3,38 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCartShopping, faCrown, faBookOpen, faUserPlus, faMicrophone, faGift } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../../hooks/useLanguage';
 
-export default function Navbar() {
+export default function Navbar({ activeSection = 'buyPoints', onSectionChange = () => {} }) {
   const { t } = useLanguage();
+  const isBuyPoints = activeSection === 'buyPoints';
+  const isPremium = activeSection === 'premium';
   return (
     <nav className="sticky top-[72px] z-40 w-full max-w-[1280px] mx-auto py-4 px-4 sm:px-6 bg-[#B7CBF3]/80 backdrop-blur-sm -mt-px border-b border-white/30 shadow-sm">
   <div className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4 items-center">
     {/* Buy Points - Active/Selected State */}
-    <button className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-xl border-2 border-blue-300 bg-blue-50 text-gray-700 text-sm sm:text-base font-medium hover:bg-blue-100 transition-colors">
+    <button
+      type="button"
+      onClick={() => onSectionChange('buyPoints')}
+      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-xl text-sm sm:text-base font-medium transition-colors ${
+        isBuyPoints
+          ? 'border-2 border-blue-300 bg-blue-50 text-gray-700 hover:bg-blue-100'
+          : 'bg-white text-gray-500 hover:bg-[#def4ff]'
+      }`}
+    >
       <FontAwesomeIcon icon={faCartShopping} className="text-sm sm:text-base" />
       <span className="hidden sm:inline">{t('pricing.buyPoints')}</span>
       <span className="sm:hidden">{t('pricing.buy')}</span>
     </button>
 
     {/* Premium - Active/Selected State */}
-    <button className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-xl border-2 border-purple-300 bg-purple-50 text-gray-700 text-sm sm:text-base font-medium hover:bg-purple-100 transition-colors">
+    <button
+      type="button"
+      onClick={() => onSectionChange('premium')}
+      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-xl text-sm sm:text-base font-medium transition-colors ${
+        isPremium
+          ? 'border-2 border-purple-300 bg-purple-50 text-gray-700 hover:bg-purple-100'
+          : 'bg-white text-gray-500 hover:bg-[#def4ff]'
+      }`}
+    >
       <FontAwesomeIcon icon={faCrown} className="text-sm sm:text-base" />
       <span>{t('pricing.premium')}</span>
     </button>

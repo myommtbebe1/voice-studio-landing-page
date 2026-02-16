@@ -294,5 +294,27 @@
     "taxInvoiceDeadline": "Requests for invoices can be made within 3 days from the date of purchase.",
     "close": "Close",
     "studio": "Studio"
+  },
+  "Premiumfaq": {
+    "title": "FAQ",
+    "questions": {
+      "tryBefore": {
+        "question": "Can I try Botnoi voice before paying?",
+        "answer": "Yes, you can."
+      },
+      "paymentMethods": {
+        "question": "What payment methods are supported?",
+        "answer": "We accept debit, credit and PromptPay payments."
+      },
+      "cancelAddOn": {
+        "question": "Can I cancel my add-on anytime?",
+        "answer": "Yes, you can cancel your add-on at any time. The cancellation will be canceled in the next billing cycle. Your Add-on will be downgraded to a non-Add-on."
+      },
+      "taxInvoice": {
+        "question": "Can I have a tax invoice?",
+        "answer": " For customers who need a full tax invoice. You can request and attach proof of payment to the email. admin@botnoigroup.com."
+      }
+    }
   }
+  
 }

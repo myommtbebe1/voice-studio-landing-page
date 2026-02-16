@@ -5,8 +5,6 @@ import Buycustompoints from './Buycustompoints';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { formatPriceDisplay } from '../formatPrice';
 import {
-  faFire,
-  faCartShopping,
   faClock,
   faCircleInfo,
   faXmark,
@@ -15,10 +13,7 @@ import {
   faMessage,
   faChevronUp,
   faChevronDown,
-  faFolder,
-  faFileLines,
   faStar,
-  faEnvelope,
 } from '@fortawesome/free-solid-svg-icons';
 
 const HOT_DEAL_PACKAGES = [
@@ -708,22 +703,7 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
     </div>
 
       {/* ——— Report an issue (wider box) ——— */}
-      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="w-full bg-white rounded-3xl shadow-lg px-6 sm:px-8 py-8 sm:py-10">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faEnvelope} className="text-gray-800 text-3xl sm:text-4xl" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{t('pricing.reportIssue')}</h1>
-              </div>
-              <p className="text-gray-500 text-base sm:text-lg ml-0 sm:ml-12">{t('pricing.reportIssueDesc')}</p>
-            </div>
-            <div className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto bg-gradient-to-r from-red-400 to-pink-400 hover:from-red-500 hover:to-pink-500 text-white font-semibold text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">{t('pricing.contactSupport')}</button>
-            </div>
-          </div>
-        </div>
-      </div>
+     
     </>
   );
 }
