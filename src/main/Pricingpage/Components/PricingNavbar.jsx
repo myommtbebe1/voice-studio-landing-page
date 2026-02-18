@@ -8,7 +8,7 @@ export default function Navbar({ activeSection = 'buyPoints', onSectionChange = 
   const isBuyPoints = activeSection === 'buyPoints';
   const isPremium = activeSection === 'premium';
   return (
-    <nav className="sticky top-[72px] z-40 w-full max-w-[1280px] mx-auto py-4 px-4 sm:px-6 bg-[#B7CBF3]/80 backdrop-blur-sm -mt-px border-b border-white/30 shadow-sm">
+    <nav className="sticky top-[72px] z-40 w-full max-w-[1280px] mx-auto py-4 px-4 sm:px-6 -mt-px  ">
   <div className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4 items-center">
     {/* Buy Points - Active/Selected State */}
     <button

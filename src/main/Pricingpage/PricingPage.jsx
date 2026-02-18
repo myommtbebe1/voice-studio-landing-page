@@ -11,6 +11,8 @@ import Premiumpage from './Premium/Premiumpage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../hooks/useLanguage';
+import Premiummembership from './Premium/Components/Premiummembership';
+import { useAddOnPackages } from '../../hooks/useAddOnPackages';
 
 const PACKAGE_DESCRIPTION = 'Botnoi voice platform Package';
 
@@ -23,6 +25,11 @@ export default function PricingPage() {
   const [packagesLoading, setPackagesLoading] = useState(true);
   const { user } = useContext(AuthContext);
   const { t} = useLanguage();
+  const {
+    packages: premiumAddOnPackages,
+    loading: premiumAddOnLoading,
+    error: premiumAddOnError,
+  } = useAddOnPackages('More Text');
 
   const getBotnoiTokenHelper = useCallback(async () => {
     if (!user) return null;
@@ -110,7 +117,16 @@ export default function PricingPage() {
     <div className="w-full px-4 sm:px-8 py-6">
       <PricingNavbar activeSection={activeSection} onSectionChange={setActiveSection} />
       {activeSection === 'premium' ? (
+        <>
+        <Premiummembership
+          onJoin={handlePurchase}
+          packages={premiumAddOnPackages}
+          loading={premiumAddOnLoading}
+          error={premiumAddOnError}
+        />
         <Premiumpage />
+        </>
+        
       ) : (
         <PricingSections
           onPurchase={handlePurchase}

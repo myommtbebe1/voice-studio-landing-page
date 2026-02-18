@@ -315,6 +315,16 @@
         "answer": " For customers who need a full tax invoice. You can request and attach proof of payment to the email. admin@botnoigroup.com."
       }
     }
+  },
+  "membership": {
+    "title": "Membership",
+    "subtitle": "Unlock your limits with the add-on package at an amazing price.",
+    "special": "Special",
+    "perMonth": "Month",
+    "createUpTo": "Create up to",
+    "chars": "chars.",
+    "joinButton": "Join",
+    "noPackages": "No \"More Text\" packages available at the moment.",
+    "error": "Error loading packages"
   }
-  
 }
