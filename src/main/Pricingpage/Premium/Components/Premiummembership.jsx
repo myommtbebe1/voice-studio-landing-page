@@ -108,7 +108,12 @@ function SubscriptionCardV2({
           >
             <div className="bg-name name inline-flex items-center gap-1.5 bg-white rounded-t-[1rem] rounded-b-[1rem] px-4 py-2">
               <span className={`text-sm font-medium red-blue ${nameTextClass}`}>{label}</span>
-              <button type="button" className="info-icon text-gray-500 hover:text-gray-700" aria-label="Info">
+              <button
+                type="button"
+                onClick={onPurchase}
+                className="info-icon text-gray-500 hover:text-gray-700"
+                aria-label="Info"
+              >
                 <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -120,7 +125,12 @@ function SubscriptionCardV2({
           >
             <div className="bg-name name inline-flex items-center gap-1.5 bg-white rounded-t-[1rem] rounded-b-[1rem] px-4 py-2">
               <span className={`text-sm font-medium default ${nameTextClass}`}>{label}</span>
-              <button type="button" className="info-icon text-gray-500 hover:text-gray-700" aria-label="Info">
+              <button
+                type="button"
+                onClick={onPurchase}
+                className="info-icon text-gray-500 hover:text-gray-700"
+                aria-label="Info"
+              >
                 <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -140,8 +150,13 @@ function SubscriptionCardV2({
                 <span className="point-month text-base sm:text-lg text-gray-500">
                   {t('membership.ptPerMonth')}
                 </span>
-                <span className="sm:hidden ml-1">
-                  <button type="button" className="text-gray-400" aria-label="Info">
+              <span className="sm:hidden ml-1">
+                <button
+                  type="button"
+                  onClick={onPurchase}
+                  className="text-gray-400"
+                  aria-label="Info"
+                >
                     <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
                   </button>
                 </span>
@@ -269,23 +284,7 @@ export default function MembershipSection({
     return `$${usdPrice}`;
   };
 
-  const handleJoin = (pkg) => {
-    const price = Number(pkg?.us_price_discount ?? pkg?.us_price ?? 0);
-    const textLimit = Number(pkg?.text_limit ?? 0);
-    const normalizedPackage = {
-      ...pkg,
-      package_id: pkg?.package_id ?? pkg?.add_id,
-      name: pkg?.display_name ?? 'Membership',
-      description: textLimit > 0 ? `Create up to ${textLimit.toLocaleString()} chars.` : 'Membership package',
-      points: textLimit,
-      price,
-      noAds: null,
-    };
-
-    if (typeof onJoin === 'function') {
-      onJoin(normalizedPackage);
-    }
-  };
+  
 
   const handleJoinStarter = () => {
     if (!starterPackage || typeof onJoin !== 'function') return;
@@ -300,6 +299,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: starterPackage.sub_id ?? '38',
     };
     onJoin(normalizedPackage);
   };
@@ -308,8 +309,8 @@ export default function MembershipSection({
     if (!proPackage || typeof onJoin !== 'function') return;
     const usPrice = Number(proPackage.us_price ?? 0);
     const month = Number(proPackage.month ?? 1);
-    const totalUsd = month === 1 ? usPrice * 3 : usPrice;
     const durationMonths = month === 1 ? 3 : month;
+    const totalUsd = month === 1 ? usPrice * 3 : usPrice;
     const points = Number(proPackage.monthly_point ?? 0) * durationMonths;
     const normalizedPackage = {
       ...proPackage,
@@ -320,6 +321,11 @@ export default function MembershipSection({
       points,
       price: totalUsd,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: proPackage.sub_id ?? '40',
+      checkoutQuantity: durationMonths,
+      checkoutDurationMonths: durationMonths,
+      checkoutExpectedTotalUsd: totalUsd,
     };
     onJoin(normalizedPackage);
   };
@@ -337,6 +343,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: elitePackage.sub_id ?? '44',
     };
     onJoin(normalizedPackage);
   };
@@ -354,6 +362,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: trialPlusPackage.sub_id ?? '52',
     };
     onJoin(normalizedPackage);
   };
@@ -371,6 +381,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: yearlyStarterPackage.sub_id ?? '53',
     };
     onJoin(normalizedPackage);
   };
@@ -388,6 +400,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: yearlyProPackage.sub_id ?? '50',
     };
     onJoin(normalizedPackage);
   };
@@ -405,6 +419,8 @@ export default function MembershipSection({
       points,
       price,
       noAds: true,
+      checkoutType: 'premium-membership',
+      subscriptionId: yearlyElitePackage.sub_id ?? '45',
     };
     onJoin(normalizedPackage);
   };
@@ -418,7 +434,7 @@ export default function MembershipSection({
   const starterPointsPerThb = Number(starterPackage?.point_per_thb ?? 0);
   const starterLabel = starterPackage?.subscription_rank ?? starterPackage?.name ?? t('membership.starter');
 
-  // Pro: sub_id 40 — API has month: 1, us_price: 30; display as 3-month plan (90 USD, 144,000 PT)
+  // Pro: sub_id 40 — API base is 1 month, but checkout flow uses 3-month total
   const proPointsPerMonth = Number(proPackage?.monthly_point ?? 0) || 48000;
   const proMonthFromApi = Number(proPackage?.month ?? 1);
   const proUsdPerMonthFromApi = Number(proPackage?.us_price ?? 0) || 30;
@@ -713,69 +729,6 @@ export default function MembershipSection({
             </div>
           )}
         </article>
-      )}
-
-      {/* Add-on Packages (from get_all_package_add_on) */}
-      {packages.length > 0 && (
-        <>
-          <h2 className="text-4xl sm:text-5xl font-bold text-black mb-2 text-center">{t('membership.addOnPackages')}</h2>
-          <p className="text-center text-gray-600 text-base sm:text-lg mb-6 max-w-2xl mx-auto">
-            {t('membership.addOnPackagesSubtitle')}
-          </p>
-          <div className="space-y-5">
-            {packages.map((pkg, index) => {
-              const hasDiscount = pkg.price_discount && pkg.price_discount < pkg.price;
-              const currentPrice = pkg.us_price_discount || pkg.us_price;
-              const originalPrice = pkg.us_price;
-
-              return (
-                <div
-                  key={pkg.add_id || index}
-                  className="relative bg-white rounded-2xl border-2 border-blue-200 p-6 shadow-sm"
-                >
-                  <div className="absolute -top-3.5 left-1/2 transform -translate-x-1/2">
-                    <div className="bg-white px-4 py-1 rounded-lg border-2 border-purple-600">
-                      <span className="text-sm font-semibold text-purple-900">
-                        {pkg.display_name}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        {hasDiscount && (
-                          <span className="text-base text-gray-400 line-through">
-                            {formatPrice(originalPrice)}/{t('membership.perMonth')}
-                          </span>
-                        )}
-                        <span className="text-2xl font-bold text-purple-600">
-                          {t('membership.special')} {formatPrice(currentPrice)}
-                          <span className="text-base">/{t('membership.perMonth')}</span>
-                        </span>
-                      </div>
-                      <p className="text-gray-700 text-base">
-                        {t('membership.createUpTo')}{' '}
-                        <span className="font-semibold text-cyan-500">
-                          {pkg.text_limit?.toLocaleString()}
-                        </span>{' '}
-                        {t('membership.chars')}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 ml-4">
-                      <button
-                        onClick={() => handleJoin(pkg)}
-                        className="bg-cyan-400 hover:bg-cyan-500 text-white font-bold text-lg px-10 py-3 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-                      >
-                        {t('membership.joinButton')}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </>
       )}
 
       {!loading && packages.length === 0 && !starterPackage && (
