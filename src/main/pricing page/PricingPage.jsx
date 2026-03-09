@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
 import PricingNavbar from './Components/PricingNavbar';
-import Payment from './Components/Payment';
-import PricingSections from './Components/PricingSections';
-import PricingPageSkeleton from './Components/PricingPageSkeleton';
+import Payment from './buy point page/Payment';
+import PricingSections from './buy point page/PricingSections';
+import PricingPageSkeleton from './buy point page/PricingPageSkeleton';
 import { AuthContext } from '../../contexts/AuthContext';
 import { getBotnoiToken } from '../../firebase/botnoi';
 import { getPackages } from '../../firebase/voiceApi';

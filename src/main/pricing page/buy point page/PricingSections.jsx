@@ -25,7 +25,7 @@ import {
 const HOT_DEAL_PACKAGES = [
   { level: 1, points: 200000, noAds: 'No Ads 1 month', coins: 50, originalPrice: '141.99', discountedPrice: '70.49', timeLeft: '09:40', package_id: 'pack_5000' },
   { level: 2, points: 80000, noAds: 'No Ads 1 month', coins: 20, originalPrice: '35.99', discountedPrice: '30.49', timeLeft: '09:40', package_id: 'pack_2000' },
-  { level: 3, points: 30000, noAds: 'No Ads 1 month', coins: 20, originalPrice: '15.99', discountedPrice: '12.49', timeLeft: '09:40', package_id: 'pack_750' },
+  { level: 3, points: 30000, noAds: 'No Ads 1 month', coins: 8, originalPrice: '15.99', discountedPrice: '12.49', timeLeft: '09:40', package_id: 'pack_750' },
 ];
 
 const VOICEBOT_FEATURE_ICONS = [faPhone, faClockRotateLeft, faMessage];
@@ -84,19 +84,19 @@ const PLAN_THEMES = {
 };
 
 const STARTER_TIERS = [
-  { points: 23500, noAds: 'No Ads 2 month', coins: 5, originalPrice: '15.99', currentPrice: '10.49', timeLeft: '09:22', package_id: 'pack_499' },
+  { points: 23500, noAds: 'No Ads 2 months', coins: 5, originalPrice: '15.99', currentPrice: '10.49', timeLeft: '09:22', package_id: 'pack_499' },
   { points: 12500, noAds: 'No Ads 1 month', coins: 3, originalPrice: '8.99', currentPrice: '5.99', timeLeft: '09:22' },
   { points: 4100, noAds: null, coins: 1, originalPrice: null, currentPrice: '2.99', timeLeft: null },
 ];
 
 const REGULAR_TIERS = [
-  { points: 97500, noAds: 'No Ads 6 month', coins: 17, originalPrice: '51.99', currentPrice: '39.99', timeLeft: '09:22' },
-  { points: 42000, noAds: 'No Ads 3 month', coins: 6, originalPrice: null, currentPrice: '17.99', timeLeft: null, package_id: 'pack_599' },
+  { points: 97500, noAds: 'No Ads 6 months', coins: 17, originalPrice: '51.99', currentPrice: '39.99', timeLeft: '09:22' },
+  { points: 42000, noAds: 'No Ads 3 months', coins: 6, originalPrice: null, currentPrice: '17.99', timeLeft: null, package_id: 'pack_599' },
 ];
 
 const PROFESSIONAL_TIERS = [
-  { points: 1000000, noAds: 'No Ads 12 month', coins: 200, originalPrice: '599.99', currentPrice: '299.99', timeLeft: '09:22' },
-  { points: 200000, noAds: 'No Ads 12 month', coins: 25, originalPrice: null, currentPrice: '74.99', timeLeft: null, package_id: 'pack_2499' },
+  { points: 1000000, noAds: 'No Ads 12 months', coins: 200, originalPrice: '599.99', currentPrice: '299.99', timeLeft: '09:22' },
+  { points: 200000, noAds: 'No Ads 12 months', coins: 25, originalPrice: null, currentPrice: '74.99', timeLeft: null, package_id: 'pack_2499' },
 ];
 
 const PRICE_PER_POINT = 0.001;
@@ -147,7 +147,7 @@ function mapApiPackagesToHotDeal(apiPackages) {
       level: p.level,
       points,
       noAds: p.noAds ?? 'No Ads 1 month',
-      coins: p.coins ?? 0,
+      coins: p.coin_voicebot ?? p.coins ?? 0,
       originalPrice: p.originalPrice != null ? String(p.originalPrice) : null,
       discountedPrice: p.price != null ? String(p.price) : null,
       timeLeft: p.timeLeft ?? '09:40',
@@ -293,7 +293,7 @@ function PointItemRow({ tier, planKey, onPurchase, saleCountdownDisplay, saleExp
                 <span className="pill inline-flex items-center gap-1.5 bg-gray-100 border border-gray-200 text-gray-900 px-2.5 py-0.5 rounded-full font-semibold text-sm max-[425px]:text-xs">
                   <CoinVoicebotIcon className="w-4 h-4 voicebot-icon shrink-0 max-[580px]:hidden" />
                   <span className="font-bold text-purple-600">{coins}</span>
-                  <span>{t('pricing.coin')}</span>
+                  <span>{coins === 1 ? t('pricing.coin') : t('pricing.coins')}</span>
                 </span>
               )}
             </div>
@@ -412,61 +412,83 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
   return (
     <>
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12">
-      {/* ——— Hot Deals: one gradient card with 3 packages + illustration ——— */}
+      {/* ——— Hot Deals: gradient container with glass cards + illustration ——— */}
       <section className="w-full">
         <div className="relative w-full mb-16 p-8 md:p-10 rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" aria-hidden />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/5 rounded-full -ml-24 -mb-24" aria-hidden />
-          <div className="absolute top-4 left-4 sm:left-6 flex flex-col gap-1">
-            <span className="inline-block bg-amber-400 text-purple-800 font-bold text-xs px-2.5 py-0.5 rounded">{t('pricing.flashSale')}</span>
-            <span className="text-white/95 text-xs font-medium">{t('pricing.promotionLimited')}</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-12 sm:mt-14 mb-4 sm:mb-6 pr-24">{t('pricing.hotDealsTitle')}</h2>
-          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-stretch">
-            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              {packagesLoading && hotDealPackages.length === 0 ? (
-                <div className="col-span-full py-8 text-center text-white/90">{t('pricing.loadingPackages')}</div>
-              ) : (
-                hotDealPackages.map((pkg, idx) => {
-                  const hotDealPrice = saleExpired ? (pkg.originalPrice ?? pkg.discountedPrice ?? pkg.price) : (pkg.discountedPrice ?? pkg.price);
-                  const hotDealPriceDisplay = formatPriceDisplay(hotDealPrice, language, t);
-                  const hotDealOriginalPriceDisplay = pkg.originalPrice != null ? formatPriceDisplay(Number(pkg.originalPrice), language, t) : null;
-                  const isFirst = idx === 0;
-                  return (
-                    <div key={pkg.level ?? pkg.points} className="bg-white/95 backdrop-blur rounded-xl p-4 sm:p-5 flex flex-col justify-between shadow-lg transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:bg-white">
-                      <div>
-                        <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{Number(pkg.points).toLocaleString()} {t('pricing.points').toUpperCase()}</p>
-                        <div className="flex items-baseline gap-2 mt-2">
-                          {!saleExpired && hotDealOriginalPriceDisplay && (
-                            <span className="text-sm text-gray-500 line-through">{hotDealOriginalPriceDisplay.display} {hotDealOriginalPriceDisplay.currency}</span>
-                          )}
-                          <span className="text-lg sm:text-xl font-bold text-gray-900">{hotDealPriceDisplay.display} {hotDealPriceDisplay.currency}</span>
-                        </div>
-                        {pkg.noAds && <p className="text-sm text-gray-600 mt-2">{pkg.noAds}</p>}
-                        {pkg.coins != null && <p className="text-sm text-gray-600">{pkg.coins} {t('pricing.coin')}</p>}
-                        {!saleExpired && saleCountdownDisplay && (
-                          <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-indigo-800 tabular-nums">
-                            <FontAwesomeIcon icon={faClock} className="text-indigo-700 shrink-0" aria-hidden />
-                            <span>{t('pricing.within')} {saleCountdownDisplay}</span>
-                          </p>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onPurchase?.({ level: pkg.level, points: pkg.points, price: saleExpired ? (pkg.originalPrice ?? pkg.discountedPrice ?? pkg.price) : (pkg.discountedPrice ?? pkg.price), ...pkg })}
-                        className="mt-4 w-full font-semibold py-2.5 rounded-lg transition-colors duration-200 bg-white border-2 border-gray-300 text-gray-800 hover:bg-amber-400 hover:border-amber-400 hover:text-gray-900"
-                      >
-                        {t('pricing.claim')}
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-            <div className="hidden lg:flex items-center justify-center w-48 shrink-0">
-              <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-white/20 flex items-center justify-center">
-                <FontAwesomeIcon icon={faGift} className="text-white text-5xl sm:text-6xl" />
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div className="w-full lg:flex-1">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="inline-block px-3 py-1 bg-yellow-400 text-indigo-900 rounded-full text-xs font-black uppercase tracking-wider">{t('pricing.flashSale')}</span>
+                <span className="text-indigo-100 text-sm font-medium">{t('pricing.promotionLimited')}</span>
               </div>
+              <h2 className="text-3xl md:text-4xl font-extrabold mb-8 leading-tight">{t('pricing.hotDealsTitle')}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {packagesLoading && hotDealPackages.length === 0 ? (
+                  <div className="col-span-full py-8 text-center text-white/90">{t('pricing.loadingPackages')}</div>
+                ) : (
+                  hotDealPackages.map((pkg, idx) => {
+                    const hotDealPrice = saleExpired ? (pkg.originalPrice ?? pkg.discountedPrice ?? pkg.price) : (pkg.discountedPrice ?? pkg.price);
+                    const hotDealPriceDisplay = formatPriceDisplay(hotDealPrice, language, t);
+                    const hotDealOriginalPriceDisplay = pkg.originalPrice != null ? formatPriceDisplay(Number(pkg.originalPrice), language, t) : null;
+                    return (
+                      <div key={pkg.level ?? pkg.points} className="backdrop-blur-sm bg-white/10 rounded-2xl p-4 flex flex-col justify-between hover:bg-white/20 hover:scale-105 transition-all duration-200 border border-white/10">
+                        <div>
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <span className="text-2xl font-black block tabular-nums">{Number(pkg.points).toLocaleString()}</span>
+                              <span className="text-xs uppercase font-bold opacity-80">{t('pricing.points')}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-xl font-bold block text-yellow-400 tabular-nums">{hotDealPriceDisplay.display} {hotDealPriceDisplay.currency}</span>
+                              {!saleExpired && hotDealOriginalPriceDisplay && (
+                                <span className="text-[10px] line-through opacity-60">{hotDealOriginalPriceDisplay.display} {hotDealOriginalPriceDisplay.currency}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {pkg.noAds && (
+                              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 text-white">
+                                <span className="material-symbols-outlined text-[12px]" aria-hidden>block</span>
+                                {pkg.noAds}
+                              </span>
+                            )}
+                            {pkg.coins != null && (
+                              <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 text-white">
+                                <span className="material-symbols-outlined text-[12px]" aria-hidden>monetization_on</span>
+                                {pkg.coins} {pkg.coins === 1 ? t('pricing.coin') : t('pricing.coins')}
+                              </span>
+                            )}
+                          </div>
+                          {!saleExpired && saleCountdownDisplay && (
+                            <p className="flex items-center gap-1.5 text-[10px] font-medium text-indigo-200 tabular-nums opacity-90">
+                              <FontAwesomeIcon icon={faClock} className="shrink-0" aria-hidden />
+                              <span>{t('pricing.within')} {saleCountdownDisplay}</span>
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onPurchase?.({ level: pkg.level, points: pkg.points, price: saleExpired ? (pkg.originalPrice ?? pkg.discountedPrice ?? pkg.price) : (pkg.discountedPrice ?? pkg.price), ...pkg })}
+                          className="mt-4 w-full py-2 font-bold rounded-lg text-sm transition-all bg-white/10 text-white border border-white/20 hover:bg-yellow-400 hover:border-yellow-400 hover:text-indigo-900"
+                        >
+                          {t('pricing.claim')}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+            <div className="hidden lg:block w-64 h-64 relative shrink-0">
+              <div className="absolute inset-0 bg-yellow-400/20 blur-3xl rounded-full" aria-hidden />
+              <img
+                alt={t('pricing.promotionVisualAlt')}
+                className="relative z-10 w-full h-full object-cover rounded-3xl shadow-2xl rotate-3"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbdxFL3mlqu19M-Tu7rLGzW43YYZ7VZTnPqPAARKcxH_csfNpYgecVhMTvpxSzFblk6KcQ55jW8OUdy4dnFVVCjyAvLrKQUvclATgywGN0G6uF5I2wfsXB3LJx9Ah2k1dRHxzCYUl49J1-RL4ngS7yomuOVR07PGQDykDqhgRbfFV__8AVxvXA74vErDnPwq1Vd9-RVMZUVH5CHMIQk5XBrUjXtcGu9EjsAcNBy-NA7_qT9e0TAIF3O1U7yHWlhMmOxFLu1RYtTec"
+                loading="lazy"
+              />
             </div>
           </div>
         </div>
@@ -492,11 +514,20 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
               {STARTER_TIERS[starterPackageIndex].points?.toLocaleString()} <span className="text-gray-500 font-normal text-lg">Pts</span>
             </p>
             <p className="text-lg font-semibold text-blue-600">
-              ${STARTER_TIERS[starterPackageIndex].currentPrice}
-              {STARTER_TIERS[starterPackageIndex].originalPrice && (
-                <span className="ml-2 text-sm font-normal text-gray-400 line-through">${STARTER_TIERS[starterPackageIndex].originalPrice}</span>
+              {saleExpired && STARTER_TIERS[starterPackageIndex].originalPrice
+                ? STARTER_TIERS[starterPackageIndex].originalPrice
+                : STARTER_TIERS[starterPackageIndex].currentPrice}
+              {t('pricing.currencyUsd')}
+              {!saleExpired && STARTER_TIERS[starterPackageIndex].originalPrice && (
+                <span className="ml-2 text-sm font-normal text-gray-400 line-through">{STARTER_TIERS[starterPackageIndex].originalPrice} {t('pricing.currencyUsd')}</span>
               )}
             </p>
+            {!saleExpired && STARTER_TIERS[starterPackageIndex].originalPrice && saleCountdownDisplay && (
+              <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-indigo-800 tabular-nums">
+                <FontAwesomeIcon icon={faClock} className="text-indigo-700 shrink-0" aria-hidden />
+                <span>{t('pricing.within')} {saleCountdownDisplay}</span>
+              </p>
+            )}
             {/* Pagination: dots + prev/next */}
             <div className="flex items-center justify-between gap-2 mt-3">
               <div className="flex items-center gap-1.5">
@@ -533,16 +564,21 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             </div>
             <ul className="mt-4 space-y-2 flex-1 text-sm text-gray-600">
               {STARTER_TIERS[starterPackageIndex].noAds && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{STARTER_TIERS[starterPackageIndex].noAds}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>block</span>
+                  <span>{STARTER_TIERS[starterPackageIndex].noAds}</span>
+                </li>
               )}
               {STARTER_TIERS[starterPackageIndex].coins != null && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.bonus')}: {STARTER_TIERS[starterPackageIndex].coins} {t('pricing.coin')}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>savings</span>
+                  <span>{t('pricing.bonus')}: <strong>{STARTER_TIERS[starterPackageIndex].coins} {STARTER_TIERS[starterPackageIndex].coins === 1 ? t('pricing.coin') : t('pricing.coins')}</strong></span>
+                </li>
               )}
-              <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.standardQuality')}</li>
             </ul>
             <button
               type="button"
-              onClick={() => onPurchase?.({ planKey: 'starter', ...STARTER_TIERS[starterPackageIndex], price: STARTER_TIERS[starterPackageIndex].currentPrice })}
+              onClick={() => onPurchase?.({ planKey: 'starter', ...STARTER_TIERS[starterPackageIndex], price: saleExpired && STARTER_TIERS[starterPackageIndex].originalPrice ? STARTER_TIERS[starterPackageIndex].originalPrice : STARTER_TIERS[starterPackageIndex].currentPrice })}
               className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.getStarted')}
@@ -562,11 +598,20 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
               {REGULAR_TIERS[regularPackageIndex].points?.toLocaleString()} <span className="text-gray-500 font-normal text-lg">Pts</span>
             </p>
             <p className="text-lg font-semibold text-blue-600">
-              ${REGULAR_TIERS[regularPackageIndex].currentPrice}
-              {REGULAR_TIERS[regularPackageIndex].originalPrice && (
-                <span className="ml-2 text-sm font-normal text-gray-400 line-through">${REGULAR_TIERS[regularPackageIndex].originalPrice}</span>
+              {saleExpired && REGULAR_TIERS[regularPackageIndex].originalPrice
+                ? REGULAR_TIERS[regularPackageIndex].originalPrice
+                : REGULAR_TIERS[regularPackageIndex].currentPrice}
+              {t('pricing.currencyUsd')}
+              {!saleExpired && REGULAR_TIERS[regularPackageIndex].originalPrice && (
+                <span className="ml-2 text-sm font-normal text-gray-400 line-through">{REGULAR_TIERS[regularPackageIndex].originalPrice} {t('pricing.currencyUsd')}</span>
               )}
             </p>
+            {!saleExpired && REGULAR_TIERS[regularPackageIndex].originalPrice && saleCountdownDisplay && (
+              <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-indigo-800 tabular-nums">
+                <FontAwesomeIcon icon={faClock} className="text-indigo-700 shrink-0" aria-hidden />
+                <span>{t('pricing.within')} {saleCountdownDisplay}</span>
+              </p>
+            )}
             {/* Pagination: dots + prev/next */}
             <div className="flex items-center justify-between gap-2 mt-3">
               <div className="flex items-center gap-1.5">
@@ -603,16 +648,21 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             </div>
             <ul className="mt-4 space-y-2 flex-1 text-sm text-gray-600">
               {REGULAR_TIERS[regularPackageIndex].noAds && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{REGULAR_TIERS[regularPackageIndex].noAds}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>block</span>
+                  <span>{REGULAR_TIERS[regularPackageIndex].noAds}</span>
+                </li>
               )}
               {REGULAR_TIERS[regularPackageIndex].coins != null && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.bonus')}: {REGULAR_TIERS[regularPackageIndex].coins} {t('pricing.coin')}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>savings</span>
+                  <span>{t('pricing.bonus')}: <strong>{REGULAR_TIERS[regularPackageIndex].coins} {REGULAR_TIERS[regularPackageIndex].coins === 1 ? t('pricing.coin') : t('pricing.coins')}</strong></span>
+                </li>
               )}
-              <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.hdQuality')}</li>
             </ul>
             <button
               type="button"
-              onClick={() => onPurchase?.({ planKey: 'regular', ...REGULAR_TIERS[regularPackageIndex], price: REGULAR_TIERS[regularPackageIndex].currentPrice })}
+              onClick={() => onPurchase?.({ planKey: 'regular', ...REGULAR_TIERS[regularPackageIndex], price: saleExpired && REGULAR_TIERS[regularPackageIndex].originalPrice ? REGULAR_TIERS[regularPackageIndex].originalPrice : REGULAR_TIERS[regularPackageIndex].currentPrice })}
               className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.purchaseNow')}
@@ -632,11 +682,20 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
               {PROFESSIONAL_TIERS[professionalPackageIndex].points?.toLocaleString()} <span className="text-gray-500 font-normal text-lg">Pts</span>
             </p>
             <p className="text-lg font-semibold text-blue-600">
-              ${PROFESSIONAL_TIERS[professionalPackageIndex].currentPrice}
-              {PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice && (
-                <span className="ml-2 text-sm font-normal text-gray-400 line-through">${PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice}</span>
+              {saleExpired && PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice
+                ? PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice
+                : PROFESSIONAL_TIERS[professionalPackageIndex].currentPrice}
+              {t('pricing.currencyUsd')}
+              {!saleExpired && PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice && (
+                <span className="ml-2 text-sm font-normal text-gray-400 line-through">{PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice} {t('pricing.currencyUsd')}</span>
               )}
             </p>
+            {!saleExpired && PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice && saleCountdownDisplay && (
+              <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-indigo-800 tabular-nums">
+                <FontAwesomeIcon icon={faClock} className="text-indigo-700 shrink-0" aria-hidden />
+                <span>{t('pricing.within')} {saleCountdownDisplay}</span>
+              </p>
+            )}
             {/* Pagination: dots + prev/next */}
             <div className="flex items-center justify-between gap-2 mt-3">
               <div className="flex items-center gap-1.5">
@@ -673,16 +732,21 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             </div>
             <ul className="mt-4 space-y-2 flex-1 text-sm text-gray-600">
               {PROFESSIONAL_TIERS[professionalPackageIndex].noAds && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{PROFESSIONAL_TIERS[professionalPackageIndex].noAds}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>block</span>
+                  <span>{PROFESSIONAL_TIERS[professionalPackageIndex].noAds}</span>
+                </li>
               )}
               {PROFESSIONAL_TIERS[professionalPackageIndex].coins != null && (
-                <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.bonus')}: {PROFESSIONAL_TIERS[professionalPackageIndex].coins} {t('pricing.coin')}</li>
+                <li className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-emerald-500 text-lg shrink-0" aria-hidden>savings</span>
+                  <span>{t('pricing.bonus')}: <strong>{PROFESSIONAL_TIERS[professionalPackageIndex].coins} {PROFESSIONAL_TIERS[professionalPackageIndex].coins === 1 ? t('pricing.coin') : t('pricing.coins')}</strong></span>
+                </li>
               )}
-              <li className="flex items-center gap-2"><FontAwesomeIcon icon={faCheck} className="text-green-500 shrink-0" />{t('pricing.prioritySupport')}</li>
             </ul>
             <button
               type="button"
-              onClick={() => onPurchase?.({ planKey: 'professional', ...PROFESSIONAL_TIERS[professionalPackageIndex], price: PROFESSIONAL_TIERS[professionalPackageIndex].currentPrice })}
+              onClick={() => onPurchase?.({ planKey: 'professional', ...PROFESSIONAL_TIERS[professionalPackageIndex], price: saleExpired && PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice ? PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice : PROFESSIONAL_TIERS[professionalPackageIndex].currentPrice })}
               className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.goProfessional')}
@@ -767,8 +831,8 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
         </div>
       </div>
 
-      {/* ——— Optional: Company banner ——— */}
-      <a
+      {/* ——— Optional: Company banner (commented out) ——— */}
+      {/* <a
         href="https://www.facebook.com/texttospeech.botnoi"
         target="_blank"
         rel="noopener noreferrer"
@@ -781,7 +845,7 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
           src={`${COMPANY_BANNER_BASE_URL}en.webp`}
           loading="lazy"
         />
-      </a>
+      </a> */}
     </div>
 
       {/* ——— Report an issue (wider box) ——— */}

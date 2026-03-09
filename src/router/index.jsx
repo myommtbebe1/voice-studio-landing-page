@@ -9,7 +9,7 @@ import LoginForm from "../main/LoginForm.jsx";
 import Home from "../main/home.jsx";
 import VoiceStudio from "../main/voicestudiopage/voicestudio.jsx";
 import VoiceOver from "../main/voiceoverpage/VoiceOver.jsx";
-import PricingPage from "../main/Pricingpage/PricingPage.jsx";
+import PricingPage from "../main/pricing page/PricingPage.jsx";
 import PaymentPage from "../main/PaymentPage.jsx";
 import ReportPage from "../main/ReportPage.jsx";
 
