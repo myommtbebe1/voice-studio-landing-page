@@ -11,8 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../hooks/useLanguage';
 import Premiummembership from './Premium/Components/Premiummembership';
-import { useAddOnPackages } from '../../hooks/useAddOnPackages';
-import { useSubscriptionPackage } from '../../hooks/useSubscriptionPackage';
+import { premiumMockData } from './Premium/premiumMockData';
 
 export default function PricingPage() {
   const [activeSection, setActiveSection] = useState('buyPoints');
@@ -21,54 +20,36 @@ export default function PricingPage() {
   const [apiPackages, setApiPackages] = useState([]);
   const [packagesLoading, setPackagesLoading] = useState(true);
   const { user } = useContext(AuthContext);
-  const { t, language } = useLanguage();
-  const {
-    packages: premiumAddOnPackages,
-    loading: premiumAddOnLoading,
-    error: premiumAddOnError,
-  } = useAddOnPackages('More Text');
+  const { t } = useLanguage();
+  const isPremium = activeSection === 'premium';
 
-  const {
-    package: starterSubscriptionPackage,
-    loading: starterSubscriptionLoading,
-    error: starterSubscriptionError,
-  } = useSubscriptionPackage(38);
+  // Premium section: UI-only (no API connections)
+  const premiumAddOnPackages = premiumMockData.addOns;
+  const premiumAddOnLoading = false;
+  const premiumAddOnError = null;
 
-  const {
-    package: proSubscriptionPackage,
-    loading: proSubscriptionLoading,
-    error: proSubscriptionError,
-  } = useSubscriptionPackage(40);
+  const starterSubscriptionPackage = premiumMockData.subscriptions.starter;
+  const proSubscriptionPackage = premiumMockData.subscriptions.pro;
+  const eliteSubscriptionPackage = premiumMockData.subscriptions.elite;
+  const trialPlusSubscriptionPackage = premiumMockData.subscriptions.trialPlus;
+  const yearlyStarterSubscriptionPackage = premiumMockData.subscriptions.yearlyStarter;
+  const yearlyProSubscriptionPackage = premiumMockData.subscriptions.yearlyPro;
+  const yearlyEliteSubscriptionPackage = premiumMockData.subscriptions.yearlyElite;
 
-  const {
-    package: eliteSubscriptionPackage,
-    loading: eliteSubscriptionLoading,
-    error: eliteSubscriptionError,
-  } = useSubscriptionPackage(44);
-
-  const {
-    package: trialPlusSubscriptionPackage,
-    loading: trialPlusSubscriptionLoading,
-    error: trialPlusSubscriptionError,
-  } = useSubscriptionPackage(52);
-
-  const {
-    package: yearlyStarterSubscriptionPackage,
-    loading: yearlyStarterSubscriptionLoading,
-    error: yearlyStarterSubscriptionError,
-  } = useSubscriptionPackage(53);
-
-  const {
-    package: yearlyProSubscriptionPackage,
-    loading: yearlyProSubscriptionLoading,
-    error: yearlyProSubscriptionError,
-  } = useSubscriptionPackage(50);
-
-  const {
-    package: yearlyEliteSubscriptionPackage,
-    loading: yearlyEliteSubscriptionLoading,
-    error: yearlyEliteSubscriptionError,
-  } = useSubscriptionPackage(45);
+  const starterSubscriptionLoading = false;
+  const starterSubscriptionError = null;
+  const proSubscriptionLoading = false;
+  const proSubscriptionError = null;
+  const eliteSubscriptionLoading = false;
+  const eliteSubscriptionError = null;
+  const trialPlusSubscriptionLoading = false;
+  const trialPlusSubscriptionError = null;
+  const yearlyStarterSubscriptionLoading = false;
+  const yearlyStarterSubscriptionError = null;
+  const yearlyProSubscriptionLoading = false;
+  const yearlyProSubscriptionError = null;
+  const yearlyEliteSubscriptionLoading = false;
+  const yearlyEliteSubscriptionError = null;
 
   const getBotnoiTokenHelper = useCallback(async () => {
     if (!user) return null;
@@ -94,7 +75,7 @@ export default function PricingPage() {
         if (!token || cancelled) return;
         const list = await getPackages(token);
         if (!cancelled) setApiPackages(Array.isArray(list) ? list : []);
-      } catch (err) {
+      } catch {
         if (!cancelled) setApiPackages([]);
       } finally {
         if (!cancelled) setPackagesLoading(false);
@@ -111,9 +92,8 @@ export default function PricingPage() {
 
   const handlePaymentSubmit = useCallback(async (payload) => {
     if (!user) return;
-    try {
-      const token = await getBotnoiTokenHelper();
-      if (!token) throw new Error('Unable to authenticate');
+    const token = await getBotnoiTokenHelper();
+    if (!token) throw new Error('Unable to authenticate');
       const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_BASE_URL) || window.location.origin;
       const pricingPageUrl = `${String(baseUrl).replace(/\/$/, '')}/Pricing`;
 
@@ -257,7 +237,7 @@ export default function PricingPage() {
         return;
       }
       // Log response when URL is missing (helps debug backend response shape)
-      if (process.env.NODE_ENV === 'development') {
+      if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
         console.warn('[Stripe custom_price] No checkout URL in response:', data);
       }
       const errMsg = data?.message ?? data?.error ?? data?.data?.message ?? data?.data?.error;
@@ -269,9 +249,6 @@ export default function PricingPage() {
             ? errMsg
             : 'No checkout URL received. Please try again.'
       );
-    } catch (err) {
-      throw err;
-    }
   }, [user, getBotnoiTokenHelper]);
 
   const onClosePayment = () => {
@@ -279,7 +256,7 @@ export default function PricingPage() {
     setSelectedPackage(null);
   };
 
-  if (packagesLoading) {
+  if (packagesLoading && !isPremium) {
     return (
       <div className="w-full px-4 sm:px-8 py-6 bg-white">
         <PricingPageSkeleton />
@@ -288,7 +265,9 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-8 py-6 bg-white">
+    <div
+      className={`w-full px-4 sm:px-8 py-6 ${isPremium ? 'bg-gray-50' : 'bg-white'}`}
+    >
       <PricingNavbar activeSection={activeSection} onSectionChange={setActiveSection} />
       {activeSection === 'premium' ? (
         <>
@@ -339,7 +318,7 @@ export default function PricingPage() {
       />
       <>
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-8">
-        <div className="w-full bg-gradient-to-br from-pink-100 to-purple-100 rounded-3xl shadow-lg border border-pink-200/50 px-6 sm:px-8 py-8 sm:py-10">
+        <div className="w-full bg-linear-to-br from-pink-100 to-purple-100 rounded-3xl shadow-lg border border-pink-200/50 px-6 sm:px-8 py-8 sm:py-10">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3">
@@ -349,7 +328,7 @@ export default function PricingPage() {
               <p className="text-gray-600 text-base sm:text-lg ml-0 sm:ml-12">{t('pricing.reportIssueDesc')}</p>
             </div>
             <div className="w-full sm:w-auto">
-              <button className="w-full sm:w-auto bg-gradient-to-r from-red-400 to-pink-400 hover:from-red-500 hover:to-pink-500 text-white font-semibold text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">{t('pricing.contactSupport')}</button>
+              <button className="w-full sm:w-auto bg-linear-to-r from-red-400 to-pink-400 hover:from-red-500 hover:to-pink-500 text-white font-semibold text-lg px-8 sm:px-12 py-3 sm:py-4 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">{t('pricing.contactSupport')}</button>
             </div>
           </div>
         </div>

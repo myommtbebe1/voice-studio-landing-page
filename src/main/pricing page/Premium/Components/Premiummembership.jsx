@@ -1,253 +1,118 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../../../../hooks/useLanguage';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 
-// Icons matching app-subscription-card-v2 (point_icon_purple, point_star_dynamic, no_blue)
-function PointIconPurple({ className = 'w-8 h-8' }) {
+function CheckBadge({ variant = 'default' }) {
+  const classes =
+    variant === 'pro'
+      ? 'bg-indigo-100 text-indigo-600'
+      : 'bg-emerald-100 text-emerald-600';
   return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <path d="M16 0L17.875 14.4375L16 32C7.15669 32 0 24.8439 0 16C0 7.15669 7.15606 0 16 0Z" fill="url(#pointGrad0)" />
-      <path d="M32 16C32 24.8433 24.8439 32 16 32V0C24.8433 0 32 7.15606 32 16Z" fill="url(#pointGrad1)" />
-      <path d="M16.0004 4.88892L17.2504 13.5627L16.0004 24.6489L10.0492 25.9645C9.50828 26.0837 8.98397 25.7114 8.91603 25.1639L8.13791 18.842L5.22478 13.6258C4.96709 13.1628 5.14315 12.5798 5.61165 12.3364L11.1423 9.46642L15.3292 5.17204C15.5054 4.99142 15.7467 4.88892 15.9985 4.88892H16.0004Z" fill="url(#pointGrad2)" />
-      <path d="M26.7775 13.622L23.8925 18.842L23.0837 25.1683C23.0132 25.7139 22.4895 26.0844 21.95 25.9645L16.015 24.6458L16 24.6489V4.88892C16.2544 4.88829 16.4931 4.99017 16.6688 5.16954L20.8881 9.46642L26.3906 12.3377C26.8567 12.5812 27.0322 13.161 26.7775 13.622Z" fill="url(#pointGrad3)" />
-      <path d="M16.595 18.4165H14.2507V16.8906H16.595C16.9573 16.8906 17.2522 16.8298 17.4797 16.708C17.7072 16.582 17.8736 16.4081 17.9789 16.1864C18.0842 15.9647 18.1369 15.7147 18.1369 15.4365C18.1369 15.1539 18.0842 14.8909 17.9789 14.6474C17.8736 14.404 17.7072 14.2083 17.4797 14.0605C17.2522 13.9127 16.9573 13.8388 16.595 13.8388H14.9079V21.8009H13.0122V12.3064H16.595C17.3154 12.3064 17.9325 12.4412 18.4465 12.7107C18.9646 12.9759 19.3606 13.3432 19.6344 13.8127C19.9083 14.2822 20.0452 14.8191 20.0452 15.4234C20.0452 16.0364 19.9083 16.5668 19.6344 17.0145C19.3606 17.4623 18.9646 17.8079 18.4465 18.0514C17.9325 18.2948 17.3154 18.4165 16.595 18.4165Z" fill="white" />
-      <defs>
-        <linearGradient id="pointGrad0" x1="0" y1="16" x2="17.875" y2="16" gradientUnits="userSpaceOnUse"><stop stopColor="#5B6370" /><stop offset="1" stopColor="#323C4C" /></linearGradient>
-        <linearGradient id="pointGrad1" x1="16" y1="16" x2="32" y2="16" gradientUnits="userSpaceOnUse"><stop stopColor="#5B6370" /><stop offset="1" stopColor="#323C4C" /></linearGradient>
-        <linearGradient id="pointGrad2" x1="11.1782" y1="4.88892" x2="11.1782" y2="17.4158" gradientUnits="userSpaceOnUse"><stop stopColor="#F84BC7" /><stop offset="1" stopColor="#C63EF4" /></linearGradient>
-        <linearGradient id="pointGrad3" x1="21.4473" y1="4.88892" x2="21.4473" y2="17.416" gradientUnits="userSpaceOnUse"><stop stopColor="#F84BC7" /><stop offset="1" stopColor="#C63EF4" /></linearGradient>
-      </defs>
-    </svg>
+    <span className={`w-5 h-5 inline-flex items-center justify-center rounded-full text-[10px] font-black ${classes}`}>
+      ✓
+    </span>
   );
 }
 
-function PointStarIcon({ className = 'w-6 h-6' }) {
-  return (
-    <svg className={className} viewBox="0 0 23 23" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <path d="M11.8327 3.52783L12.6921 9.49103L11.8327 17.1128L7.74122 18.0173C7.36937 18.0993 7.00891 17.8433 6.9622 17.4669L6.42724 13.1206L4.42446 9.53443C4.2473 9.21612 4.36834 8.81531 4.69044 8.64799L8.49275 6.67486L11.3712 3.72248C11.4924 3.5983 11.6583 3.52783 11.8314 3.52783H11.8327Z" fill="url(#starGrad)" />
-      <path d="M19.2425 9.53186L17.2591 13.1206L16.7031 17.4699C16.6546 17.845 16.2945 18.0997 15.9236 18.0173L11.8433 17.1107L11.833 17.1128V3.52783C12.0079 3.5274 12.172 3.59744 12.2928 3.72076L15.1936 6.67487L18.9766 8.64885C19.297 8.81626 19.4176 9.21492 19.2425 9.53186Z" fill="url(#starGrad2)" />
-      <path d="M12.2415 12.8277H10.6298V11.7786H12.2415C12.4906 11.7786 12.6933 11.7368 12.8497 11.6531C13.0061 11.5664 13.1205 11.4469 13.1929 11.2944C13.2653 11.142 13.3015 10.9701 13.3015 10.7789C13.3015 10.5846 13.2653 10.4038 13.1929 10.2364C13.1205 10.069 13.0061 9.93454 12.8497 9.83292C12.6933 9.7313 12.4906 9.68049 12.2415 9.68049H11.0816V15.1544H9.77832V8.62695H12.2415C12.7368 8.62695 13.1611 8.7196 13.5144 8.90491C13.8706 9.08722 14.1429 9.33977 14.3311 9.66256C14.5194 9.98535 14.6135 10.3545 14.6135 10.7699C14.6135 11.1913 14.5194 11.5559 14.3311 11.8638C14.1429 12.1716 13.8706 12.4092 13.5144 12.5766C13.1611 12.744 12.7368 12.8277 12.2415 12.8277Z" fill="white" />
-      <defs>
-        <linearGradient id="starGrad" x1="4.42" y1="3.53" x2="18.98" y2="17.11" gradientUnits="userSpaceOnUse"><stop stopColor="#F84BC7" /><stop offset="1" stopColor="#C63EF4" /></linearGradient>
-        <linearGradient id="starGrad2" x1="11.83" y1="3.53" x2="19.24" y2="9.53" gradientUnits="userSpaceOnUse"><stop stopColor="#F84BC7" /><stop offset="1" stopColor="#C63EF4" /></linearGradient>
-      </defs>
-    </svg>
-  );
+function TopIcon({ variant = 'default' }) {
+  const color =
+    variant === 'starter'
+      ? 'text-indigo-200'
+      : variant === 'pro'
+        ? 'text-indigo-400'
+        : variant === 'elite'
+          ? 'text-purple-200'
+          : 'text-slate-200';
+  const glyph = variant === 'pro' ? '★' : variant === 'elite' ? '◆' : variant === 'trial' ? 'ℹ' : '✔';
+  return <span className={`text-3xl leading-none select-none ${color}`}>{glyph}</span>;
 }
 
-function NoBlueIcon({ className = 'w-5 h-5' }) {
-  return (
-    <svg className={className} viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-      <path d="M13.0758 12.4088L4.59082 3.92383" stroke="#01BFFB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M8.83301 14.1665C12.1467 14.1665 14.833 11.4802 14.833 8.1665C14.833 4.8528 12.1467 2.1665 8.83301 2.1665C5.5193 2.1665 2.83301 4.8528 2.83301 8.1665C2.83301 11.4802 5.5193 14.1665 8.83301 14.1665Z" stroke="#01BFFB" strokeWidth="2" strokeMiterlimit="10" />
-    </svg>
-  );
-}
-
-function SubscriptionCardV2({
-  label,
-  pointsPerMonth,
-  usdPerMonth,
-  totalPoints,
-  totalUsd,
-  durationMonths,
-  pointsPerThb,
-  formatPrice,
-  t,
-  onPurchase,
-  variant = 'default',
-  purchaseButtonId = 'starter_monthly_subscription',
-  extraListItems = [],
-  multiplierOverride,
-  pointsPerThbOverride,
-  durationLabelType = 'start',
+function TierCard({
+  badge,
+  badgeTone = 'indigo',
+  iconVariant,
+  pointsLabel,
+  pointsSuffix,
+  priceLabel,
+  priceTone = 'indigo',
+  originalPriceLabel,
+  features = [],
+  ctaLabel,
+  ctaVariant = 'outline',
+  onClick,
+  highlighted = false,
 }) {
-  const isRedBlue = variant === 'red-blue';
-  const durationLabelPrefix = durationLabelType === 'total' ? t('membership.total') : t('membership.start');
-  const displayPointsPerThb = pointsPerThbOverride ?? (pointsPerThb > 0 ? pointsPerThb : 90);
-  const displayMultiplier = multiplierOverride ?? (pointsPerThb > 0 ? (pointsPerThb / 40).toFixed(2) : '2.25');
+  const badgeClass =
+    badgeTone === 'purple'
+      ? 'bg-purple-50/50 text-purple-600 border-purple-100/50'
+      : badgeTone === 'slate'
+        ? 'bg-slate-100/50 text-slate-500 border-slate-200/50'
+        : badgeTone === 'white'
+          ? 'bg-indigo-600 text-white border-transparent'
+          : 'bg-indigo-50/50 text-indigo-600 border-indigo-100/50';
 
-  // Pro outer box: red → blue → purple gradient (line 72–74)
-  const borderGradient = isRedBlue
-    ? 'bg-gradient-to-r from-red-400 via-blue-400 to-purple-500'
-    : null;
-  const starterGradientStyle = !isRedBlue
-    ? { background: 'linear-gradient(90deg, #b2e9ff, #80b0ff, #ffd7d7)' }
-    : undefined;
-  const nameTextClass = isRedBlue
-    ? 'red-blue bg-gradient-to-r from-red-500 to-blue-600 bg-clip-text text-transparent font-semibold'
-    : 'text-black font-medium';
-  const pointTextClass = isRedBlue
-    ? 'red-blue-text bg-gradient-to-r from-red-500 to-blue-600 bg-clip-text text-transparent font-bold'
-    : 'text-[#323C4C] font-bold';
-  const buttonGradient = isRedBlue
-    ? 'btn-blue-red-grad bg-gradient-to-r from-[#3b82f6] to-[#ef4444] hover:from-[#2563eb] hover:to-[#dc2626]'
-    : 'btn-blue-grad bg-gradient-to-r from-[#6366f1] to-[#3b82f6] hover:from-[#4f46e5] hover:to-[#2563eb]';
+  const priceClass = priceTone === 'slate' ? 'text-slate-900' : 'text-indigo-600';
 
-  // Pro section box colors (when variant="red-blue"):
-  // - Outer card border: borderGradient above (red → blue → purple)
-  // - Pro pill border: line ~97 (linear-gradient #fbcfe8, #f9a8d4, #e9d5ff)
-  // - Main card background: <main> has bg-white (line ~124)
-  // - Expand section box: expandBoxGradient (Pro: #fbcfe8, #f9a8d4, #e9d5ff)
-  const expandBoxGradient = isRedBlue
-    ? 'linear-gradient(90deg, #fbcfe8, #f9a8d4, #e9d5ff)'
-    : 'linear-gradient(90deg, #b2e9ff, #80b0ff, #ffd7d7)';
+  const baseCard =
+    'rounded-3xl p-8 relative transition-all duration-300 hover:-translate-y-1 flex flex-col bg-white text-black';
+  const normalCard = 'border border-gray-100 shadow-sm';
+  const proCard = 'border border-indigo-200 shadow-xl shadow-indigo-100/60 ring-1 ring-indigo-100';
+  const scale = highlighted ? 'md:scale-105 z-10' : '';
+
+  const buttonClass =
+    ctaVariant === 'solid'
+      ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200'
+      : ctaVariant === 'muted'
+        ? 'bg-white hover:bg-gray-100 text-slate-700 border border-gray-200'
+        : 'bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-gray-200';
 
   return (
-    <div
-      className={`bg-card-container relative rounded-2xl p-[2px] w-full max-w-2xl mx-auto ${borderGradient ?? ''} shadow-sm ${isRedBlue ? 'border-red-blue' : 'border-default default'}`}
-      style={starterGradientStyle}
-    >
-      {/* Starter/name word box: middle and center of package box, overlapping top edge like a tab */}
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 z-10">
-        {isRedBlue ? (
-          <div
-            className="inline-block rounded-[1rem] overflow-hidden pt-[3px] px-[0px] pb-0"
-            style={{ background: 'linear-gradient(90deg,rgb(251, 219, 207), #f9a8d4, #e9d5ff)' }}
-          >
-            <div className="bg-name name inline-flex items-center gap-1.5 bg-white rounded-t-[1rem] rounded-b-[1rem] px-4 py-2">
-              <span className={`text-sm font-medium red-blue ${nameTextClass}`}>{label}</span>
-              <button
-                type="button"
-                onClick={onPurchase}
-                className="info-icon text-gray-500 hover:text-gray-700"
-                aria-label="Info"
-              >
-                <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div
-            className="inline-block rounded-[1rem] overflow-hidden pt-[3px] px-[0px] pb-0"
-            style={{ background: 'linear-gradient(90deg, #b2e9ff, #80b0ff, #ffd7d7)' }}
-          >
-            <div className="bg-name name inline-flex items-center gap-1.5 bg-white rounded-t-[1rem] rounded-b-[1rem] px-4 py-2">
-              <span className={`text-sm font-medium default ${nameTextClass}`}>{label}</span>
-              <button
-                type="button"
-                onClick={onPurchase}
-                className="info-icon text-gray-500 hover:text-gray-700"
-                aria-label="Info"
-              >
-                <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        )}
+    <div className={`${baseCard} ${highlighted ? proCard : normalCard} ${scale}`}>
+      {highlighted && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-md shadow-indigo-200">
+          MOST POPULAR
+        </div>
+      )}
+
+      <div className="flex justify-between items-start mb-8">
+        <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border ${badgeClass}`}>
+          {badge}
+        </span>
+        <TopIcon variant={iconVariant} />
       </div>
 
-      <main className="card-container rounded-2xl bg-white overflow-hidden pt-5">
-        <div className="card-wrapper px-5 pt-2 pb-4 sm:px-6 sm:pt-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <section className="left flex-1 min-w-0">
-              <div className="left-row-1 flex items-baseline gap-2 flex-wrap">
-                <PointIconPurple className="w-8 h-8 flex-shrink-0 point-icon" />
-                <span className={`point text-xl sm:text-2xl ${pointTextClass}`}>
-                  {Number(pointsPerMonth).toLocaleString()}
-                </span>
-                <span className="point-month text-base sm:text-lg text-gray-500">
-                  {t('membership.ptPerMonth')}
-                </span>
-              <span className="sm:hidden ml-1">
-                <button
-                  type="button"
-                  onClick={onPurchase}
-                  className="text-gray-400"
-                  aria-label="Info"
-                >
-                    <FontAwesomeIcon icon={faCircleInfo} className="w-3.5 h-3.5" />
-                  </button>
-                </span>
-              </div>
-              <p className="left-row-2 summary text-sm text-gray-500 mt-1">
-                {formatPrice(Number(usdPerMonth))}/{t('membership.perMonth')} {t('membership.usdPerMonthGet')}{' '}
-                <span className="text-500 font-semibold text-gray-700">
-                  {Number(totalPoints).toLocaleString()}
-                </span>{' '}
-                {t('membership.ptExclaim')}
-              </p>
-            </section>
+      <div className="mb-2">
+        <span className="text-4xl font-black tracking-tighter">{pointsLabel}</span>{' '}
+        <span className="text-slate-500 font-bold text-sm">{pointsSuffix}</span>
+      </div>
 
-            <section className="right hidden sm:flex flex-shrink-0 flex-col items-end gap-1">
-              <button
-                type="button"
-                onClick={onPurchase}
-                id={purchaseButtonId}
-                className={`purchase-btn w-full sm:w-auto min-w-[120px] text-white font-bold text-xl py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition-all ${buttonGradient}`}
-              >
-                <span>{Number(totalUsd)}</span>
-                <span className="text-small-btn text-sm font-medium opacity-90 ml-0.5"> USD</span>
-              </button>
-              <span className="minimum text-xs text-gray-500">
-                {durationLabelPrefix} {Number(durationMonths)} {t('membership.monthUnit')}
-              </span>
-            </section>
-          </div>
-        </div>
+      <div className="mb-10 flex items-baseline gap-2">
+        <span className={`text-2xl font-black ${priceClass}`}>{priceLabel}</span>
+        {originalPriceLabel ? (
+          <span className="text-sm text-slate-400 line-through font-bold">{originalPriceLabel}</span>
+        ) : null}
+      </div>
 
-        <div className="expand-wrapper px-5 sm:px-6 pb-4">
-          <div
-            className="rounded-[12px] overflow-hidden p-[2px]"
-            style={{ background: expandBoxGradient }}
-          >
-            <div className="bg-expand-content bg-gray-50 overflow-hidden rounded-[10px]">
-            <section className="expand-content p-4">
-              <div className="sub-card-container grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                <div className="card-left flex items-start gap-2 rounded-lg bg-white/80 p-3 border border-gray-100">
-                  <PointStarIcon className="w-6 h-6 flex-shrink-0 star-icon mt-0.5" />
-                  <div>
-                    <div className="sub-card-title font-semibold text-[#323C4C]">x{displayMultiplier}</div>
-                    <span className="sub-card-info text-xs text-gray-500">({displayPointsPerThb} {t('membership.pointsPerThb')})</span>
-                  </div>
-                </div>
-                <div className="card-right flex items-start gap-2 rounded-lg bg-white/80 p-3 border border-gray-100">
-                  <NoBlueIcon className="w-5 h-5 flex-shrink-0 no-icon mt-0.5" />
-                  <div>
-                    <div className="sub-card-title text-[#01BFFB] font-medium">ADS</div>
-                    <span className="sub-card-info text-xs text-gray-600">{t('membership.noAds')}</span>
-                  </div>
-                </div>
-              </div>
-              <div className="list-info space-y-2">
-                <div className="list flex items-center gap-2">
-                  <div className="bullet w-2 h-2 rounded-full bg-[#01BFFB] flex-shrink-0" />
-                  <span className="list-text text-sm text-gray-700">{t('membership.monthlyPointsAutoReset')}</span>
-                </div>
-                {extraListItems.map((text, i) => (
-                  <div key={i} className="list flex items-center gap-2">
-                    <div className="bullet w-2 h-2 rounded-full bg-[#01BFFB] flex-shrink-0" />
-                    <span className="list-text text-sm text-gray-700">{text}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-            </div>
-          </div>
-        </div>
+      <ul className="space-y-5 mb-12 grow">
+        {features.map((f, idx) => (
+          <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-slate-600">
+            <CheckBadge variant={highlighted ? 'pro' : 'default'} /> {f}
+          </li>
+        ))}
+      </ul>
 
-        <div className="sm:hidden px-5 sm:px-6 pb-4 flex flex-col items-stretch gap-1">
-          <button
-            type="button"
-            onClick={onPurchase}
-            className={`purchase-btn-mobile w-full text-white font-bold text-lg py-3 px-4 rounded-xl ${buttonGradient}`}
-          >
-            <span>{Number(totalUsd)}</span>
-            <span className="text-small-btn text-sm opacity-90 ml-1"> USD</span>
-          </button>
-          <span className="minimum-mobile text-xs text-gray-500 text-center">
-            {durationLabelPrefix} {Number(durationMonths)} {t('membership.monthUnit')}
-          </span>
-        </div>
-      </main>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`w-full py-4 font-black rounded-2xl transition-all shadow-sm ${buttonClass}`}
+      >
+        {ctaLabel}
+      </button>
     </div>
   );
 }
 
 export default function MembershipSection({
   onJoin,
-  packages = [],
   loading = false,
   error = null,
   starterPackage = null,
@@ -272,7 +137,7 @@ export default function MembershipSection({
   yearlyEliteLoading = false,
   yearlyEliteError = null,
 }) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [isYearly, setIsYearly] = useState(false);
 
   const formatPrice = (usdPrice) => {
@@ -426,9 +291,6 @@ export default function MembershipSection({
   const starterDurationMonths = Number(starterPackage?.month ?? 0) || 3;
   const starterTotalUsd = Number(starterPackage?.us_price ?? 0) || 45;
   const starterUsdPerMonth = starterDurationMonths > 0 ? starterTotalUsd / starterDurationMonths : starterTotalUsd;
-  const starterTotalPoints = starterPointsPerMonth * starterDurationMonths;
-  const starterPointsPerThb = Number(starterPackage?.point_per_thb ?? 0);
-  const starterLabel = starterPackage?.subscription_rank ?? starterPackage?.name ?? t('membership.starter');
 
   // Pro: sub_id 40 — API base is 1 month, but checkout flow uses 3-month total
   const proPointsPerMonth = Number(proPackage?.monthly_point ?? 0) || 48000;
@@ -437,48 +299,34 @@ export default function MembershipSection({
   const proDurationMonths = proMonthFromApi === 1 ? 3 : proMonthFromApi;
   const proTotalUsd = proMonthFromApi === 1 ? proUsdPerMonthFromApi * 3 : Number(proPackage?.us_price ?? 0);
   const proUsdPerMonth = proDurationMonths > 0 ? proTotalUsd / proDurationMonths : proUsdPerMonthFromApi;
-  const proTotalPoints = proPointsPerMonth * proDurationMonths;
-  const proLabel = proPackage?.subscription_rank ?? proPackage?.name ?? t('membership.pro');
 
   // Elite: sub_id 44 — 160,000 PT/Month, 225 USD, 3 months, x4, 160 points/thb
   const elitePointsPerMonth = Number(elitePackage?.monthly_point ?? 0) || 160000;
   const eliteDurationMonths = Number(elitePackage?.month ?? 0) || 3;
   const eliteTotalUsd = Number(elitePackage?.us_price ?? 0) || 225;
   const eliteUsdPerMonth = eliteDurationMonths > 0 ? eliteTotalUsd / eliteDurationMonths : 75;
-  const eliteTotalPoints = elitePointsPerMonth * eliteDurationMonths;
-  const eliteLabel = elitePackage?.subscription_rank ?? elitePackage?.name ?? t('membership.elite');
 
   // Trial+: sub_id 52 — 35,000 PT/Month, 15 USD, 1 month; design shows "get 105,000 PT!" (35k*3)
   const trialPlusPointsPerMonth = Number(trialPlusPackage?.monthly_point ?? 0) || 35000;
-  const trialPlusDurationMonths = Number(trialPlusPackage?.month ?? 0) || 1;
   const trialPlusTotalUsd = Number(trialPlusPackage?.us_price ?? 0) || 15;
-  const trialPlusUsdPerMonth = trialPlusTotalUsd;
-  const trialPlusTotalPointsDisplay = trialPlusPointsPerMonth * (trialPlusDurationMonths === 1 ? 3 : trialPlusDurationMonths);
-  const trialPlusLabel = trialPlusPackage?.subscription_rank ?? trialPlusPackage?.name ?? t('membership.trialPlus');
 
   // Yearly Starter: sub_id 53 (Starter_partner) — 18,000 PT/Month, 130 USD total, 12 months, 10.8 USD/Month, 216,000 PT, x2.5, 100 points/thb
   const yearlyStarterPointsPerMonth = Number(yearlyStarterPackage?.monthly_point ?? 0) || 18000;
   const yearlyStarterDurationMonths = Number(yearlyStarterPackage?.month ?? 0) || 12;
   const yearlyStarterTotalUsd = Number(yearlyStarterPackage?.us_price ?? 0) || 130;
   const yearlyStarterUsdPerMonth = yearlyStarterDurationMonths > 0 ? yearlyStarterTotalUsd / yearlyStarterDurationMonths : 10.8;
-  const yearlyStarterTotalPoints = yearlyStarterPointsPerMonth * yearlyStarterDurationMonths;
-  const yearlyStarterLabel = t('membership.starter');
 
   // Yearly Pro: sub_id 50 (Pro_partner) — 48,000 PT/Month, 350 USD total, 12 months, 29.2 USD/Month, 576,000 PT, x3.5, 140 points/thb
   const yearlyProPointsPerMonth = Number(yearlyProPackage?.monthly_point ?? 0) || 48000;
   const yearlyProDurationMonths = Number(yearlyProPackage?.month ?? 0) || 12;
   const yearlyProTotalUsd = Number(yearlyProPackage?.us_price ?? 0) || 350;
   const yearlyProUsdPerMonth = yearlyProDurationMonths > 0 ? yearlyProTotalUsd / yearlyProDurationMonths : 29.2;
-  const yearlyProTotalPoints = yearlyProPointsPerMonth * yearlyProDurationMonths;
-  const yearlyProLabel = t('membership.pro');
 
   // Yearly Elite: sub_id 45 — 160,000 PT/Month, 1000 USD total, 12 months, 83.3 USD/Month, 1,920,000 PT, x5, 200 points/thb
   const yearlyElitePointsPerMonth = Number(yearlyElitePackage?.monthly_point ?? 0) || 160000;
   const yearlyEliteDurationMonths = Number(yearlyElitePackage?.month ?? 0) || 12;
   const yearlyEliteTotalUsd = Number(yearlyElitePackage?.us_price ?? 0) || 1000;
   const yearlyEliteUsdPerMonth = yearlyEliteDurationMonths > 0 ? yearlyEliteTotalUsd / yearlyEliteDurationMonths : 83.3;
-  const yearlyEliteTotalPoints = yearlyElitePointsPerMonth * yearlyEliteDurationMonths;
-  const yearlyEliteLabel = t('membership.elite');
 
   const isLoading = loading || starterLoading || proLoading || eliteLoading || trialPlusLoading || yearlyStarterLoading || yearlyProLoading || yearlyEliteLoading;
   const hasError = error || starterError || proError || eliteError || trialPlusError || yearlyStarterError || yearlyProError || yearlyEliteError;
@@ -504,234 +352,159 @@ export default function MembershipSection({
     );
   }
 
+  const tiers = (isYearly
+    ? [
+      {
+        key: 'ystarter',
+        badge: t('membership.starter'),
+        badgeTone: 'indigo',
+        iconVariant: 'starter',
+        pointsLabel: Number(yearlyStarterPointsPerMonth).toLocaleString(),
+        pointsSuffix: 'Pts/mo',
+        priceLabel: formatPrice(yearlyStarterUsdPerMonth),
+        originalPriceLabel: null,
+        features: ['Monthly points, auto-reset', 'No Ads', 'Standard Voices'],
+        ctaLabel: 'Get Started',
+        ctaVariant: 'outline',
+        onClick: handleJoinYearlyStarter,
+      },
+      {
+        key: 'ypro',
+        badge: t('membership.pro'),
+        badgeTone: 'white',
+        iconVariant: 'pro',
+        pointsLabel: Number(yearlyProPointsPerMonth).toLocaleString(),
+        pointsSuffix: 'Pts/mo',
+        priceLabel: formatPrice(yearlyProUsdPerMonth),
+        originalPriceLabel: null,
+        features: ['Monthly points, auto-reset', 'No Ads', 'AI Tools Access'],
+        ctaLabel: 'Purchase Now',
+        ctaVariant: 'solid',
+        highlighted: true,
+        onClick: handleJoinYearlyPro,
+      },
+      {
+        key: 'yelite',
+        badge: t('membership.elite'),
+        badgeTone: 'purple',
+        iconVariant: 'elite',
+        pointsLabel: Number(yearlyElitePointsPerMonth).toLocaleString(),
+        pointsSuffix: 'Pts/mo',
+        priceLabel: formatPrice(yearlyEliteUsdPerMonth),
+        originalPriceLabel: null,
+        features: ['Monthly points, auto-reset', 'No Ads', 'Priority Support'],
+        ctaLabel: 'Go Professional',
+        ctaVariant: 'outline',
+        onClick: handleJoinYearlyElite,
+      },
+    ]
+    : [
+        {
+          key: 'starter',
+          badge: t('membership.starter'),
+          badgeTone: 'indigo',
+          iconVariant: 'starter',
+          pointsLabel: Number(starterPointsPerMonth).toLocaleString(),
+          pointsSuffix: 'Pts/mo',
+          priceLabel: formatPrice(starterUsdPerMonth),
+          originalPriceLabel: null,
+          features: ['No Ads for 2 Months', 'Bonus: 5 Coins', 'Standard Voices'],
+          ctaLabel: 'Get Started',
+          ctaVariant: 'outline',
+          onClick: handleJoinStarter,
+        },
+        {
+          key: 'pro',
+          badge: t('membership.pro'),
+          badgeTone: 'white',
+          iconVariant: 'pro',
+          pointsLabel: Number(proPointsPerMonth).toLocaleString(),
+          pointsSuffix: 'Pts/mo',
+          priceLabel: formatPrice(proUsdPerMonth),
+          originalPriceLabel: null,
+          features: ['No Ads for 6 Months', 'Bonus: 17 Coins', 'HD Quality Voices', 'AI Tools Access'],
+          ctaLabel: 'Purchase Now',
+          ctaVariant: 'solid',
+          highlighted: true,
+          onClick: handleJoinPro,
+        },
+        {
+          key: 'elite',
+          badge: t('membership.elite'),
+          badgeTone: 'purple',
+          iconVariant: 'elite',
+          pointsLabel: Number(elitePointsPerMonth).toLocaleString(),
+          pointsSuffix: 'Pts/mo',
+          priceLabel: formatPrice(eliteUsdPerMonth),
+          originalPriceLabel: null,
+          features: ['No Ads for 12 Months', 'Bonus: 200 Coins', 'Priority Support', 'All AI Tools Included'],
+          ctaLabel: 'Go Professional',
+          ctaVariant: 'outline',
+          onClick: handleJoinElite,
+        },
+        {
+          key: 'trial',
+          badge: 'Trial',
+          badgeTone: 'slate',
+          iconVariant: 'trial',
+          pointsLabel: Number(trialPlusPointsPerMonth).toLocaleString(),
+          pointsSuffix: 'Pts',
+          priceLabel: formatPrice(trialPlusTotalUsd),
+          priceTone: 'slate',
+          originalPriceLabel: null,
+          features: ['1 Month Access', 'Standard Voices', 'Try Premium Features'],
+          ctaLabel: 'Try Now',
+          ctaVariant: 'muted',
+          onClick: handleJoinTrialPlus,
+        },
+      ]);
+
+  const tierGridClass = isYearly && tiers.length === 3
+    ? 'max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+    : 'max-w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
+
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-12">
-      <h1 className="text-4xl sm:text-5xl font-bold text-center mb-3 text-black">
-        {t('membership.title')}
-      </h1>
+    <div className="py-16">
+      <div className="text-center mb-16 px-4">
+        <h2 className="text-5xl font-black text-black mb-6 tracking-tight">Choose Your Package</h2>
+        <p className="text-gray-500 max-w-2xl mx-auto text-lg font-medium">
+          Simple, transparent pricing for all your voice generation needs. Select the plan that fits your workflow.
+        </p>
 
-      <p className="text-center text-gray-600 text-base sm:text-lg mb-8">
-        {t('membership.subtitle')}
-      </p>
-
-      {/* Monthly / Yearly toggle */}
-      <div className="flex justify-center mb-10">
-        <div
-          className="inline-flex rounded-[1.25rem] p-2"
-          style={{ background: 'linear-gradient(90deg, #EBE8F6 0%, #F0ECFA 100%)' }}
-        >
-          <button
-            type="button"
-            onClick={() => setIsYearly(false)}
-            className={`px-4 py-2 rounded-[1.25rem] text-sm font-medium transition-all ${
-              !isYearly
-                ? 'bg-white shadow-none'
-                : 'text-[#515151] hover:text-gray-900'
-            }`}
-          >
-            <span
-              className={!isYearly ? 'bg-clip-text text-transparent' : ''}
-              style={
-                !isYearly
-                  ? { backgroundImage: 'linear-gradient(90deg, #8A48F9, #AD5AFE, #65A7FF, #3F8CFF)' }
-                  : undefined
-              }
-            >
+        <div className="mt-10 rounded-full inline-flex items-center justify-center p-1.5 bg-gray-100 border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-6 px-4 py-2">
+            <span className={`text-sm font-bold ${!isYearly ? 'text-slate-900' : 'text-slate-400'}`}>
               {t('membership.monthly')}
             </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsYearly(true)}
-            className={`px-4 py-2 rounded-[1.25rem] text-sm font-medium transition-all ${
-              isYearly
-                ? 'bg-white shadow-none'
-                : 'hover:opacity-90'
-            }`}
-          >
-            {isYearly ? (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isYearly}
+              onClick={() => setIsYearly((v) => !v)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isYearly ? 'bg-indigo-600' : 'bg-indigo-600'
+              }`}
+            >
               <span
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: 'linear-gradient(90deg, #8A48F9, #AD5AFE, #65A7FF, #3F8CFF)' }}
-              >
-                {t('membership.yearly')}
-              </span>
-            ) : (
-              <>
-                <span className="text-[#515151]">{t('membership.yearlyLabel')}</span>
-                <span className="text-[#8A48F9]">{t('membership.yearlyDiscountPrefix')}</span>
-                <span className="text-[#FE655B]">{t('membership.yearlyDiscountSuffix')}</span>
-              </>
-            )}
-          </button>
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition duration-200 ease-in-out ${
+                  isYearly ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+            <span className={`text-sm font-bold ${isYearly ? 'text-slate-900' : 'text-slate-400'}`}>
+              {t('membership.yearlyLabel')}{' '}
+              <span className="ml-1 text-xs text-indigo-600 font-black">{t('membership.yearlyDiscount')}</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Monthly section: Starter + Pro + Elite + Trial+ subscription cards */}
-      {!isYearly && (
-        <article className="package-cards space-y-10 mb-10">
-          {starterPackage ? (
-            <SubscriptionCardV2
-              label={starterLabel}
-              pointsPerMonth={starterPointsPerMonth}
-              usdPerMonth={starterUsdPerMonth}
-              totalPoints={starterTotalPoints}
-              totalUsd={starterTotalUsd}
-              durationMonths={starterDurationMonths}
-              pointsPerThb={starterPointsPerThb}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinStarter}
-              variant="default"
-              purchaseButtonId="starter_monthly_subscription"
-            />
-          ) : (
-            <div className="text-center py-8 text-gray-500 rounded-2xl border-2 border-dashed border-gray-200">
-              {t('membership.noStarterPackage')}
-            </div>
-          )}
-
-          {proPackage && (
-            <SubscriptionCardV2
-              label={proLabel}
-              pointsPerMonth={proPointsPerMonth}
-              usdPerMonth={proUsdPerMonth}
-              totalPoints={proTotalPoints}
-              totalUsd={proTotalUsd}
-              durationMonths={proDurationMonths}
-              pointsPerThb={Number(proPackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinPro}
-              variant="red-blue"
-              purchaseButtonId="Pro_monthly_subscription"
-              extraListItems={[t('membership.useAiToolsFree')]}
-              multiplierOverride={3}
-              pointsPerThbOverride={120}
-            />
-          )}
-
-          {elitePackage && (
-            <SubscriptionCardV2
-              label={eliteLabel}
-              pointsPerMonth={elitePointsPerMonth}
-              usdPerMonth={eliteUsdPerMonth}
-              totalPoints={eliteTotalPoints}
-              totalUsd={eliteTotalUsd}
-              durationMonths={eliteDurationMonths}
-              pointsPerThb={Number(elitePackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinElite}
-              variant="default"
-              purchaseButtonId="Elite_monthly_subscription"
-              extraListItems={[t('membership.useAiToolsFree')]}
-              multiplierOverride={4}
-              pointsPerThbOverride={160}
-            />
-          )}
-
-          {trialPlusPackage && (
-            <SubscriptionCardV2
-              label={trialPlusLabel}
-              pointsPerMonth={trialPlusPointsPerMonth}
-              usdPerMonth={trialPlusUsdPerMonth}
-              totalPoints={trialPlusTotalPointsDisplay}
-              totalUsd={trialPlusTotalUsd}
-              durationMonths={trialPlusDurationMonths}
-              pointsPerThb={Number(trialPlusPackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinTrialPlus}
-              variant="default"
-              purchaseButtonId="Trial_monthly_subscription"
-              extraListItems={[t('membership.useAiToolsFree')]}
-              multiplierOverride={1}
-              pointsPerThbOverride={50}
-            />
-          )}
-        </article>
-      )}
-
-      {/* Yearly section: Yearly Starter + Pro + Elite */}
-      {isYearly && (
-        <article className="package-cards space-y-10 mb-10">
-          {yearlyStarterPackage ? (
-            <SubscriptionCardV2
-              label={yearlyStarterLabel}
-              pointsPerMonth={yearlyStarterPointsPerMonth}
-              usdPerMonth={Math.round(yearlyStarterUsdPerMonth * 10) / 10}
-              totalPoints={yearlyStarterTotalPoints}
-              totalUsd={yearlyStarterTotalUsd}
-              durationMonths={yearlyStarterDurationMonths}
-              pointsPerThb={Number(yearlyStarterPackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinYearlyStarter}
-              variant="default"
-              purchaseButtonId="starter_yearly_subscription"
-              extraListItems={[]}
-              multiplierOverride={2.5}
-              pointsPerThbOverride={100}
-              durationLabelType="total"
-            />
-          ) : null}
-
-          {yearlyProPackage && (
-            <SubscriptionCardV2
-              label={yearlyProLabel}
-              pointsPerMonth={yearlyProPointsPerMonth}
-              usdPerMonth={Math.round(yearlyProUsdPerMonth * 10) / 10}
-              totalPoints={yearlyProTotalPoints}
-              totalUsd={yearlyProTotalUsd}
-              durationMonths={yearlyProDurationMonths}
-              pointsPerThb={Number(yearlyProPackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinYearlyPro}
-              variant="red-blue"
-              purchaseButtonId="Pro_yearly_subscription"
-              extraListItems={[t('membership.useAiToolsFree')]}
-              multiplierOverride={3.5}
-              pointsPerThbOverride={140}
-              durationLabelType="total"
-            />
-          )}
-
-          {yearlyElitePackage && (
-            <SubscriptionCardV2
-              label={yearlyEliteLabel}
-              pointsPerMonth={yearlyElitePointsPerMonth}
-              usdPerMonth={Math.round(yearlyEliteUsdPerMonth * 10) / 10}
-              totalPoints={yearlyEliteTotalPoints}
-              totalUsd={yearlyEliteTotalUsd}
-              durationMonths={yearlyEliteDurationMonths}
-              pointsPerThb={Number(yearlyElitePackage?.point_per_thb ?? 0)}
-              formatPrice={formatPrice}
-              t={t}
-              onPurchase={handleJoinYearlyElite}
-              variant="default"
-              purchaseButtonId="Elite_yearly_subscription"
-              extraListItems={[t('membership.useAiToolsFree')]}
-              multiplierOverride={5}
-              pointsPerThbOverride={200}
-              durationLabelType="total"
-            />
-          )}
-
-          {!yearlyStarterPackage && !yearlyProPackage && !yearlyElitePackage && (
-            <div className="text-center py-8 text-gray-500 rounded-2xl border-2 border-dashed border-gray-200">
-              {t('membership.yearlyComingSoon')}
-            </div>
-          )}
-        </article>
-      )}
-
-      {!loading && packages.length === 0 && !starterPackage && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-base">{t('membership.noPackages')}</p>
-        </div>
-      )}
+      <div className={`${tierGridClass} mx-auto px-4 sm:px-6 lg:px-8 gap-8 mb-10`}>
+        {tiers.map((tier) => (
+          <TierCard key={tier.key} {...tier} />
+        ))}
+      </div>
     </div>
   );
 }

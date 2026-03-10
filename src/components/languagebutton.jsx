@@ -38,7 +38,7 @@ function LanguageButton() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="lang-btn flex items-center gap-2"
+        className="lang-btn flex items-center gap-2 border border-gray-200 rounded-full"
         onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
       >
         {/* <FontAwesomeIcon icon={faEarthAmericas} className="lang-btn-icon" /> */}
@@ -69,7 +69,7 @@ function LanguageButton() {
       </button>
       <button
         onClick={() => handleSelect("my")}
-        className={`px-3 py-2 w-full text-left rounded ${
+        className={`px-3 py-2 w-full text-left rounded  ${
           language === "my"
             ? "bg-blue-500 text-white"
             : "bg-gray-200 text-gray-700 hover:bg-gray-300"

@@ -38,7 +38,7 @@ function Navbar() {
   };
   return (
     <div>
-      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-white/40 backdrop-blur-lg border-b border-white/30 transition-all duration-300">
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full bg-white/40 backdrop-blur-lg border-b border-white/30 shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition-all duration-300">
         <div className="max-w-[1280px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-primary">

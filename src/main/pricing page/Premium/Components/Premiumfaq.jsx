@@ -32,28 +32,29 @@ export default function Premiumfaq() {
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 py-12">
-      {/* Title */}
-      <h5 className="text-xl sm:text-3xl font-bold text-center mb-12 text-black">FAQ</h5>
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
+      <h2 className="text-3xl font-black text-center mb-12 tracking-tight text-slate-900">
+        {t('faq.title') ?? 'Frequently Asked Questions'}
+      </h2>
 
       {/* FAQ Items */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {faqData.map((item, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all"
+            className="bg-white/40 backdrop-blur-md rounded-3xl border border-white/60 overflow-hidden shadow-sm hover:border-white transition-all"
           >
             {/* Question Button */}
             <button
               onClick={() => toggleAccordion(index)}
-              className="w-full px-6 sm:px-8 py-6 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+              className="w-full px-8 py-5 flex items-center justify-between text-left group"
             >
-              <span className="text-lg sm:text-xl font-semibold text-gray-900 pr-4">
+              <span className="font-bold text-slate-700 pr-4">
                 {item.question}
               </span>
               <FontAwesomeIcon
                 icon={faChevronDown}
-                className={`text-gray-400 text-lg transition-transform duration-300 flex-shrink-0 ${
+                className={`text-slate-400 text-lg transition-all duration-300 shrink-0 group-hover:text-indigo-600 ${
                   openIndex === index ? 'rotate-180' : ''
                 }`}
               />
@@ -65,8 +66,8 @@ export default function Premiumfaq() {
                 openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
               }`}
             >
-              <div className="px-6 sm:px-8 pb-6 pt-2">
-                <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+              <div className="px-8 pb-6 pt-0.5">
+                <p className="text-slate-600 text-base sm:text-lg leading-relaxed font-medium">
                   {item.answer}
                 </p>
               </div>
