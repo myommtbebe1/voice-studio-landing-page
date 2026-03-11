@@ -501,8 +501,8 @@ export default function MembershipSection({
       </div>
 
       <div className={`${tierGridClass} mx-auto px-4 sm:px-6 lg:px-8 gap-8 mb-10`}>
-        {tiers.map((tier) => (
-          <TierCard key={tier.key} {...tier} />
+      {tiers.map(({ key, ...tierProps }) => (
+           <TierCard key={key} {...tierProps} />  // ✅ key is separate, not in the spread
         ))}
       </div>
     </div>

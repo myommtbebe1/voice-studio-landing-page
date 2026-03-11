@@ -2,10 +2,50 @@ import React from 'react';
 
 export default function AddOnPackagesSection({
   packages = [],
+  loading = false,
+  error = null,
   formatPrice,
   t,
   onJoinAddOn,
 }) {
+  if (loading) {
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">
+            {t('membership.title')}
+          </h2>
+          <p className="text-xl text-slate-500 font-medium">
+            {t('membership.addOnPackagesSubtitle')}
+          </p>
+        </div>
+        <div className="animate-pulse rounded-[3rem] p-8 sm:p-10 border bg-white/60">
+          <div className="h-8 w-48 mx-auto md:mx-0 bg-slate-200 rounded mb-6" />
+          <div className="h-10 w-64 mx-auto md:mx-0 bg-slate-200 rounded mb-4" />
+          <div className="h-6 w-56 mx-auto md:mx-0 bg-slate-200 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-5xl font-black text-slate-900 mb-6 tracking-tight">
+            {t('membership.title')}
+          </h2>
+          <p className="text-xl text-slate-500 font-medium">
+            {t('membership.addOnPackagesSubtitle')}
+          </p>
+        </div>
+        <div className="rounded-[2rem] border border-red-200 bg-red-50 px-6 py-5 text-center text-red-600 font-medium">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   if (!packages.length) return null;
 
   const getNumbers = (pkg) => {

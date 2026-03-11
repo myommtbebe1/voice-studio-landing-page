@@ -12,15 +12,33 @@ export const useAddOnPackages = (filterDisplayName = null) => {
     if (!user) return null;
     const firebaseToken = await user.getIdToken();
     const res = await getBotnoiToken(firebaseToken);
+    
     if (typeof res === 'string') return res;
     if (res?.token) return res.token;
     if (res?.access_token) return res.access_token;
     if (res?.data?.token) return res.data.token;
-    return res?.data?.access_token ?? null;
+    if (res?.data?.access_token) return res.data.access_token;
+    if (typeof res?.data === 'string') return res.data; // 👈 ADD THIS
+    return null;
   }, [user]);
 
   useEffect(() => {
     let cancelled = false;
+
+    const getErrorMessage = async (response) => {
+      try {
+        const data = await response.json();
+        return (
+          data?.message ??
+          data?.error ??
+          data?.data?.message ??
+          data?.data?.error ??
+          `Failed to fetch packages (${response.status})`
+        );
+      } catch {
+        return `Failed to fetch packages (${response.status})`;
+      }
+    };
 
     async function fetchAddOnPackages() {
       if (!user) {
@@ -45,8 +63,10 @@ export const useAddOnPackages = (filterDisplayName = null) => {
           }
         );
 
-        if (!response.ok) throw new Error('Failed to fetch packages');
-        
+        if (!response.ok) {
+          throw new Error(await getErrorMessage(response));
+        }
+
         const result = await response.json();
         
         if (!cancelled) {

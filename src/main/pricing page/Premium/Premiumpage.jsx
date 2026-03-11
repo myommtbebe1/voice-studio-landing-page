@@ -3,8 +3,8 @@ import Premiumfaq from './Components/Premiumfaq';
 import AddOnPackagesSection from './Components/AddOnPackagesSection';
 import { useLanguage } from '../../../hooks/useLanguage';
 
-export default function Premiumpage({ onJoin, packages = [] }) {
-  const { t, language } = useLanguage();
+export default function Premiumpage({ onJoin, packages = [], loading = false, error = null }) {
+  const { t } = useLanguage();
 
   const formatPrice = (usdPrice) => {
     const num = Number(usdPrice);
@@ -38,6 +38,8 @@ export default function Premiumpage({ onJoin, packages = [] }) {
     <div>
       <AddOnPackagesSection
         packages={packages}
+        loading={loading}
+        error={error}
         formatPrice={formatPrice}
         t={t}
         onJoinAddOn={handleJoin}

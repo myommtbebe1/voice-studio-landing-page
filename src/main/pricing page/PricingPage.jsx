@@ -11,7 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../hooks/useLanguage';
 import Premiummembership from './Premium/Components/Premiummembership';
-import { premiumMockData } from './Premium/premiumMockData';
+import { useAddOnPackages } from '../../hooks/useAddOnPackages';
+import { useSubscriptionPackage } from '../../hooks/useSubscriptionPackage';
 
 export default function PricingPage() {
   const [activeSection, setActiveSection] = useState('buyPoints');
@@ -23,43 +24,60 @@ export default function PricingPage() {
   const { t } = useLanguage();
   const isPremium = activeSection === 'premium';
 
-  // Premium section: UI-only (no API connections)
-  const premiumAddOnPackages = premiumMockData.addOns;
-  const premiumAddOnLoading = false;
-  const premiumAddOnError = null;
+  const {
+    packages: premiumAddOnPackages,
+    loading: premiumAddOnLoading,
+    error: premiumAddOnError,
+  } = useAddOnPackages();
 
-  const starterSubscriptionPackage = premiumMockData.subscriptions.starter;
-  const proSubscriptionPackage = premiumMockData.subscriptions.pro;
-  const eliteSubscriptionPackage = premiumMockData.subscriptions.elite;
-  const trialPlusSubscriptionPackage = premiumMockData.subscriptions.trialPlus;
-  const yearlyStarterSubscriptionPackage = premiumMockData.subscriptions.yearlyStarter;
-  const yearlyProSubscriptionPackage = premiumMockData.subscriptions.yearlyPro;
-  const yearlyEliteSubscriptionPackage = premiumMockData.subscriptions.yearlyElite;
-
-  const starterSubscriptionLoading = false;
-  const starterSubscriptionError = null;
-  const proSubscriptionLoading = false;
-  const proSubscriptionError = null;
-  const eliteSubscriptionLoading = false;
-  const eliteSubscriptionError = null;
-  const trialPlusSubscriptionLoading = false;
-  const trialPlusSubscriptionError = null;
-  const yearlyStarterSubscriptionLoading = false;
-  const yearlyStarterSubscriptionError = null;
-  const yearlyProSubscriptionLoading = false;
-  const yearlyProSubscriptionError = null;
-  const yearlyEliteSubscriptionLoading = false;
-  const yearlyEliteSubscriptionError = null;
+  const {
+    package: starterSubscriptionPackage,
+    loading: starterSubscriptionLoading,
+    error: starterSubscriptionError,
+  } = useSubscriptionPackage(38);
+  const {
+    package: proSubscriptionPackage,
+    loading: proSubscriptionLoading,
+    error: proSubscriptionError,
+  } = useSubscriptionPackage(40);
+  const {
+    package: eliteSubscriptionPackage,
+    loading: eliteSubscriptionLoading,
+    error: eliteSubscriptionError,
+  } = useSubscriptionPackage(44);
+  const {
+    package: trialPlusSubscriptionPackage,
+    loading: trialPlusSubscriptionLoading,
+    error: trialPlusSubscriptionError,
+  } = useSubscriptionPackage(52);
+  const {
+    package: yearlyStarterSubscriptionPackage,
+    loading: yearlyStarterSubscriptionLoading,
+    error: yearlyStarterSubscriptionError,
+  } = useSubscriptionPackage(53);
+  const {
+    package: yearlyProSubscriptionPackage,
+    loading: yearlyProSubscriptionLoading,
+    error: yearlyProSubscriptionError,
+  } = useSubscriptionPackage(50);
+  const {
+    package: yearlyEliteSubscriptionPackage,
+    loading: yearlyEliteSubscriptionLoading,
+    error: yearlyEliteSubscriptionError,
+  } = useSubscriptionPackage(45);
 
   const getBotnoiTokenHelper = useCallback(async () => {
     if (!user) return null;
     const firebaseToken = await user.getIdToken();
     const res = await getBotnoiToken(firebaseToken);
+    
     if (typeof res === 'string') return res;
     if (res?.token) return res.token;
     if (res?.access_token) return res.access_token;
     if (res?.data?.token) return res.data.token;
-    return res?.data?.access_token ?? null;
+    if (res?.data?.access_token) return res.data.access_token;
+    if (typeof res?.data === 'string') return res.data; // 👈 ADD THIS
+    return null;
   }, [user]);
 
   useEffect(() => {
@@ -273,9 +291,6 @@ export default function PricingPage() {
         <>
         <Premiummembership
           onJoin={handlePurchase}
-          packages={premiumAddOnPackages}
-          loading={premiumAddOnLoading}
-          error={premiumAddOnError}
           starterPackage={starterSubscriptionPackage}
           starterLoading={starterSubscriptionLoading}
           starterError={starterSubscriptionError}
@@ -298,7 +313,12 @@ export default function PricingPage() {
           yearlyEliteLoading={yearlyEliteSubscriptionLoading}
           yearlyEliteError={yearlyEliteSubscriptionError}
         />
-        <Premiumpage onJoin={handlePurchase} packages={premiumAddOnPackages} />
+        <Premiumpage
+          onJoin={handlePurchase}
+          packages={premiumAddOnPackages}
+          loading={premiumAddOnLoading}
+          error={premiumAddOnError}
+        />
         </>
         
       ) : (
