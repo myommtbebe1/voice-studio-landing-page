@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRocket, faStar, faGem } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../../../hooks/useLanguage';
 
 function CheckBadge({ variant = 'default' }) {
@@ -13,15 +15,21 @@ function CheckBadge({ variant = 'default' }) {
   );
 }
 
-function TopIcon({ variant = 'default' }) {
+function TopIcon({ variant = 'default', hoverStyle = false }) {
   const color =
-    variant === 'starter'
-      ? 'text-indigo-200'
-      : variant === 'pro'
-        ? 'text-indigo-400'
-        : variant === 'elite'
-          ? 'text-purple-200'
-          : 'text-slate-200';
+    hoverStyle
+      ? 'text-purple-500'
+      : variant === 'starter'
+        ? 'text-indigo-200'
+        : variant === 'pro'
+          ? 'text-indigo-400'
+          : variant === 'elite'
+            ? 'text-purple-200'
+            : 'text-slate-200';
+  if (hoverStyle && (variant === 'starter' || variant === 'pro' || variant === 'elite')) {
+    const icon = variant === 'starter' ? faRocket : variant === 'pro' ? faStar : faGem;
+    return <FontAwesomeIcon icon={icon} className={`w-8 h-8 ${color}`} />;
+  }
   const glyph = variant === 'pro' ? '★' : variant === 'elite' ? '◆' : variant === 'trial' ? 'ℹ' : '✔';
   return <span className={`text-3xl leading-none select-none ${color}`}>{glyph}</span>;
 }
@@ -53,10 +61,12 @@ function TierCard({
   const priceClass = priceTone === 'slate' ? 'text-slate-900' : 'text-indigo-600';
 
   const baseCard =
-    'rounded-3xl p-8 relative transition-all duration-300 hover:-translate-y-1 flex flex-col bg-white text-black';
-  const normalCard = 'border border-gray-100 shadow-sm';
-  const proCard = 'border border-indigo-200 shadow-xl shadow-indigo-100/60 ring-1 ring-indigo-100';
-  const scale = highlighted ? 'md:scale-105 z-10' : '';
+    'group rounded-2xl p-6 relative transition-all duration-300 hover:-translate-y-1 flex flex-col bg-white text-black shadow-lg';
+  const normalCard =
+    'border-2 border-gray-100 hover:border-purple-500 hover:shadow-xl hover:shadow-purple-200/30';
+  const proCard =
+    'border-2 border-indigo-200 shadow-xl shadow-indigo-100/60 ring-1 ring-indigo-100 hover:border-purple-500 hover:shadow-xl hover:shadow-purple-200/30';
+  const scale = highlighted ? 'z-10' : '';
 
   const buttonClass =
     ctaVariant === 'solid'
@@ -67,34 +77,34 @@ function TierCard({
 
   return (
     <div className={`${baseCard} ${highlighted ? proCard : normalCard} ${scale}`}>
-      {highlighted && (
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-5 py-1.5 bg-indigo-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-md shadow-indigo-200">
-          MOST POPULAR
-        </div>
-      )}
+      {/* Buy-point style: pill above card visible on hover */}
+      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+        {badge}
+      </span>
 
-      <div className="flex justify-between items-start mb-8">
-        <span className={`px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border ${badgeClass}`}>
+      <div className="flex justify-between items-start mb-2 min-h-[2.5rem]">
+        {/* Buy-point style: purple uppercase title — visible by default, disappears on hover */}
+        <p className="text-sm font-bold text-purple-600 uppercase tracking-wide transition-opacity duration-200 group-hover:opacity-0">
           {badge}
-        </span>
-        <TopIcon variant={iconVariant} />
+        </p>
+        <TopIcon variant={iconVariant} hoverStyle />
       </div>
 
-      <div className="mb-2">
-        <span className="text-4xl font-black tracking-tighter">{pointsLabel}</span>{' '}
+      <div className="mb-1">
+        <span className="text-2xl font-black tracking-tighter">{pointsLabel}</span>{' '}
         <span className="text-slate-500 font-bold text-sm">{pointsSuffix}</span>
       </div>
 
-      <div className="mb-10 flex items-baseline gap-2">
-        <span className={`text-2xl font-black ${priceClass}`}>{priceLabel}</span>
+      <div className="mb-4 flex items-baseline gap-2">
+        <span className={`text-lg font-semibold ${priceClass}`}>{priceLabel}</span>
         {originalPriceLabel ? (
           <span className="text-sm text-slate-400 line-through font-bold">{originalPriceLabel}</span>
         ) : null}
       </div>
 
-      <ul className="space-y-5 mb-12 grow">
+      <ul className="mt-4 space-y-2 flex-1 text-sm font-semibold text-slate-600">
         {features.map((f, idx) => (
-          <li key={idx} className="flex items-center gap-3 text-sm font-semibold text-slate-600">
+          <li key={idx} className="flex items-center gap-3">
             <CheckBadge variant={highlighted ? 'pro' : 'default'} /> {f}
           </li>
         ))}
@@ -103,7 +113,7 @@ function TierCard({
       <button
         type="button"
         onClick={onClick}
-        className={`w-full py-4 font-black rounded-2xl transition-all shadow-sm ${buttonClass}`}
+        className={`mt-6 w-full py-3 font-semibold rounded-xl transition-all shadow-sm ${buttonClass}`}
       >
         {ctaLabel}
       </button>
@@ -363,7 +373,7 @@ export default function MembershipSection({
         pointsSuffix: 'Pts/mo',
         priceLabel: formatPrice(yearlyStarterUsdPerMonth),
         originalPriceLabel: null,
-        features: ['Monthly points, auto-reset', 'No Ads', 'Standard Voices'],
+        features: ['Monthly points, auto-reset', 'No Ads'],
         ctaLabel: 'Get Started',
         ctaVariant: 'outline',
         onClick: handleJoinYearlyStarter,
@@ -371,16 +381,15 @@ export default function MembershipSection({
       {
         key: 'ypro',
         badge: t('membership.pro'),
-        badgeTone: 'white',
+        badgeTone: 'indigo',
         iconVariant: 'pro',
         pointsLabel: Number(yearlyProPointsPerMonth).toLocaleString(),
         pointsSuffix: 'Pts/mo',
         priceLabel: formatPrice(yearlyProUsdPerMonth),
         originalPriceLabel: null,
-        features: ['Monthly points, auto-reset', 'No Ads', 'AI Tools Access'],
-        ctaLabel: 'Purchase Now',
-        ctaVariant: 'solid',
-        highlighted: true,
+        features: ['Monthly points, auto-reset', 'No Ads'],
+        ctaLabel: 'Go Pro',
+        ctaVariant: 'outline',
         onClick: handleJoinYearlyPro,
       },
       {
@@ -392,7 +401,7 @@ export default function MembershipSection({
         pointsSuffix: 'Pts/mo',
         priceLabel: formatPrice(yearlyEliteUsdPerMonth),
         originalPriceLabel: null,
-        features: ['Monthly points, auto-reset', 'No Ads', 'Priority Support'],
+        features: ['Monthly points, auto-reset', 'No Ads'],
         ctaLabel: 'Go Professional',
         ctaVariant: 'outline',
         onClick: handleJoinYearlyElite,
@@ -408,7 +417,7 @@ export default function MembershipSection({
           pointsSuffix: 'Pts/mo',
           priceLabel: formatPrice(starterUsdPerMonth),
           originalPriceLabel: null,
-          features: ['No Ads for 2 Months', 'Bonus: 5 Coins', 'Standard Voices'],
+          features: ['No Ads for 2 Months', 'Bonus: 5 Coins'],
           ctaLabel: 'Get Started',
           ctaVariant: 'outline',
           onClick: handleJoinStarter,
@@ -416,16 +425,15 @@ export default function MembershipSection({
         {
           key: 'pro',
           badge: t('membership.pro'),
-          badgeTone: 'white',
+          badgeTone: 'indigo',
           iconVariant: 'pro',
           pointsLabel: Number(proPointsPerMonth).toLocaleString(),
           pointsSuffix: 'Pts/mo',
           priceLabel: formatPrice(proUsdPerMonth),
           originalPriceLabel: null,
-          features: ['No Ads for 6 Months', 'Bonus: 17 Coins', 'HD Quality Voices', 'AI Tools Access'],
-          ctaLabel: 'Purchase Now',
-          ctaVariant: 'solid',
-          highlighted: true,
+          features: ['No Ads for 6 Months', 'Bonus: 17 Coins'],
+          ctaLabel: 'Go Pro',
+          ctaVariant: 'outline',
           onClick: handleJoinPro,
         },
         {
@@ -437,7 +445,7 @@ export default function MembershipSection({
           pointsSuffix: 'Pts/mo',
           priceLabel: formatPrice(eliteUsdPerMonth),
           originalPriceLabel: null,
-          features: ['No Ads for 12 Months', 'Bonus: 200 Coins', 'Priority Support', 'All AI Tools Included'],
+          features: ['No Ads for 12 Months', 'Bonus: 200 Coins'],
           ctaLabel: 'Go Professional',
           ctaVariant: 'outline',
           onClick: handleJoinElite,
@@ -454,7 +462,7 @@ export default function MembershipSection({
           originalPriceLabel: null,
           features: ['1 Month Access', 'Standard Voices', 'Try Premium Features'],
           ctaLabel: 'Try Now',
-          ctaVariant: 'muted',
+          ctaVariant: 'outline',
           onClick: handleJoinTrialPlus,
         },
       ]);
@@ -500,7 +508,7 @@ export default function MembershipSection({
         </div>
       </div>
 
-      <div className={`${tierGridClass} mx-auto px-4 sm:px-6 lg:px-8 gap-8 mb-10`}>
+      <div className={`${tierGridClass} mx-auto px-4 sm:px-6 lg:px-8 gap-4 sm:gap-6 mb-10`}>
       {tiers.map(({ key, ...tierProps }) => (
            <TierCard key={key} {...tierProps} />  // ✅ key is separate, not in the spread
         ))}

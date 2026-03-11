@@ -579,7 +579,7 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             <button
               type="button"
               onClick={() => onPurchase?.({ planKey: 'starter', ...STARTER_TIERS[starterPackageIndex], price: saleExpired && STARTER_TIERS[starterPackageIndex].originalPrice ? STARTER_TIERS[starterPackageIndex].originalPrice : STARTER_TIERS[starterPackageIndex].currentPrice })}
-              className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="mt-6 w-full bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-gray-200 font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.getStarted')}
             </button>
@@ -663,7 +663,7 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             <button
               type="button"
               onClick={() => onPurchase?.({ planKey: 'regular', ...REGULAR_TIERS[regularPackageIndex], price: saleExpired && REGULAR_TIERS[regularPackageIndex].originalPrice ? REGULAR_TIERS[regularPackageIndex].originalPrice : REGULAR_TIERS[regularPackageIndex].currentPrice })}
-              className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="mt-6 w-full bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-gray-200 font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.purchaseNow')}
             </button>
@@ -747,7 +747,7 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
             <button
               type="button"
               onClick={() => onPurchase?.({ planKey: 'professional', ...PROFESSIONAL_TIERS[professionalPackageIndex], price: saleExpired && PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice ? PROFESSIONAL_TIERS[professionalPackageIndex].originalPrice : PROFESSIONAL_TIERS[professionalPackageIndex].currentPrice })}
-              className="mt-6 w-full bg-gray-500 hover:bg-purple-600 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="mt-6 w-full bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-gray-200 font-semibold py-3 rounded-xl transition-colors"
             >
               {t('pricing.goProfessional')}
             </button>
