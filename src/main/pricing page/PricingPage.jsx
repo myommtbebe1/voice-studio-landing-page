@@ -28,7 +28,7 @@ export default function PricingPage() {
     packages: premiumAddOnPackages,
     loading: premiumAddOnLoading,
     error: premiumAddOnError,
-  } = useAddOnPackages();
+  } = useAddOnPackages('More Text');
 
   const {
     package: starterSubscriptionPackage,
@@ -39,17 +39,12 @@ export default function PricingPage() {
     package: proSubscriptionPackage,
     loading: proSubscriptionLoading,
     error: proSubscriptionError,
-  } = useSubscriptionPackage(40);
+  } = useSubscriptionPackage(41);
   const {
     package: eliteSubscriptionPackage,
     loading: eliteSubscriptionLoading,
     error: eliteSubscriptionError,
   } = useSubscriptionPackage(44);
-  const {
-    package: trialPlusSubscriptionPackage,
-    loading: trialPlusSubscriptionLoading,
-    error: trialPlusSubscriptionError,
-  } = useSubscriptionPackage(52);
   const {
     package: yearlyStarterSubscriptionPackage,
     loading: yearlyStarterSubscriptionLoading,
@@ -300,9 +295,6 @@ export default function PricingPage() {
           elitePackage={eliteSubscriptionPackage}
           eliteLoading={eliteSubscriptionLoading}
           eliteError={eliteSubscriptionError}
-          trialPlusPackage={trialPlusSubscriptionPackage}
-          trialPlusLoading={trialPlusSubscriptionLoading}
-          trialPlusError={trialPlusSubscriptionError}
           yearlyStarterPackage={yearlyStarterSubscriptionPackage}
           yearlyStarterLoading={yearlyStarterSubscriptionLoading}
           yearlyStarterError={yearlyStarterSubscriptionError}

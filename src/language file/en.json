@@ -323,6 +323,7 @@
     "ptExclaim": "PT!",
     "start": "Start",
     "total": "Total",
+    "total12Month": "Total 12 Month",
     "monthUnit": "Month",
     "pointsPerThb": "points/thb",
     "noAds": "No Ads",
@@ -336,6 +337,7 @@
     "noStarterPackage": "Starter package is not available.",
     "yearlyComingSoon": "Yearly plans coming soon.",
     "addOnPackages": "Membership",
+    "addOnTitle": "Membership",
     "addOnPackagesSubtitle": "Unlock your limits with the add-on package at an amazing price.",
     "error": "Error loading packages"
   }

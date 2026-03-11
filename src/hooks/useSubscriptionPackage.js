@@ -47,7 +47,8 @@ export function useSubscriptionPackage(subId) {
         const token = await getBotnoiTokenHelper();
         if (!token || cancelled) return;
 
-        const response = await fetch(SUBSCRIPTION_PACKAGE_API, {
+        const url = `${SUBSCRIPTION_PACKAGE_API}?sub_id=${encodeURIComponent(subId)}`;
+        const response = await fetch(url, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,13 +62,26 @@ export function useSubscriptionPackage(subId) {
 
         if (!cancelled) {
           const data = result?.data ?? result;
+          const subIdStr = String(subId);
+
+          const findById = (obj) =>
+            obj && String(obj?.sub_id ?? obj?.id ?? '') === subIdStr;
+
           if (Array.isArray(data)) {
-            const match = data.find(
-              (p) => String(p?.sub_id ?? p?.id ?? '') === String(subId)
-            );
+            const match = data.find(findById);
             setPackageData(match ?? data[0] ?? null);
+          } else if (data && typeof data === 'object') {
+            if (findById(data)) {
+              setPackageData(data);
+            } else {
+              const values = Object.values(data);
+              const match = values.find(
+                (v) => v && typeof v === 'object' && findById(v)
+              );
+              setPackageData(match ?? data ?? null);
+            }
           } else {
-            setPackageData(data ?? null);
+            setPackageData(null);
           }
         }
       } catch (err) {

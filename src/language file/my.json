@@ -323,6 +323,7 @@
     "ptExclaim": "ပွိုင့်!",
     "start": "စတင်",
     "total": "စုစုပေါင်း",
+    "total12Month": "စုစုပေါင်း ၁၂ လ",
     "monthUnit": "လ",
     "pointsPerThb": "ပွိုင့်/thb",
     "noAds": "ကြော်ငြာများ မပါ",
@@ -336,6 +337,7 @@
     "noStarterPackage": "စတင်သူ package မရှိပါ။",
     "yearlyComingSoon": "နှစ်စဉ် အစီအစဉ်များ မကြာမီ ရရှိပါမည်။",
     "addOnPackages": "Membership",
+    "addOnTitle": "အသင်းဝင်",
     "addOnPackagesSubtitle": "အံ့သြဖွယ် ဈေးနှုန်းဖြင့် add-on package ဖြင့် သင့်အကန့်အသတ်များကို ဖွင့်လှစ်ပါ။",
     "error": "packages များ ထည့်သွင်းရာတွင် အမှားအယွင်းရှိနေပါသည်"
   }

@@ -1,7 +1,88 @@
 import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faRocket, faStar, faGem } from '@fortawesome/free-solid-svg-icons';
+import { faRocket, faStar, faGem, faBan } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../../../hooks/useLanguage';
+
+function PackageCardDetailed({ pkg, title, ctaLabel, t, formatPrice, onJoin, pointPerThbDefault = 90, multiplierDefault = 2.25, showAiToolsBullet = false, promoTotalMonths = null, durationLabel = null }) {
+  const monthlyPoint = Number(pkg?.monthly_point ?? 0);
+  const month = Number(pkg?.month ?? 0) || 1;
+  const totalUsd = Number(pkg?.us_price ?? 0);
+  const usdPerMonth = month > 0 ? totalUsd / month : totalUsd;
+  const totalPointsForPromo = promoTotalMonths != null ? monthlyPoint * promoTotalMonths : monthlyPoint * month;
+  const pointPerThb = Number(pkg?.point_per_thb ?? 0) || pointPerThbDefault;
+  const multiplier = multiplierDefault;
+  const multiplierDisplay = multiplier % 1 === 0 ? String(Math.round(multiplier)) : Number(multiplier).toFixed(2);
+  const durationText = durationLabel != null ? durationLabel : `${t('membership.start')} ${month} ${t('membership.monthUnit')}`;
+
+  return (
+    <div className="rounded-2xl p-6 flex flex-col bg-white text-black shadow-lg border-2 border-gray-100 hover:border-purple-500 hover:shadow-xl transition-all duration-300 overflow-visible relative group bg-gradient-to-b from-white to-gray-50/50">
+      {/* Buy-point style: pill above card visible on hover */}
+      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+        {title.toUpperCase()}
+      </span>
+      <div className="flex justify-between items-center mb-4 min-h-[2.5rem]">
+        <p className="text-sm font-bold text-purple-600 uppercase tracking-wide transition-opacity duration-200 group-hover:opacity-0">
+          {title}
+        </p>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between gap-6 mb-4">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl text-indigo-500 font-black leading-none">P</span>
+          <div>
+            <p className="text-2xl font-black text-black tracking-tight">
+              {monthlyPoint.toLocaleString()} <span className="text-base font-normal text-slate-700">{t('membership.ptPerMonth')}</span>
+            </p>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {formatPrice(usdPerMonth)} {t('membership.usdPerMonthGet')} {totalPointsForPromo.toLocaleString()} {t('membership.ptExclaim')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl p-4 border-2 border-gray-100 bg-white/80 space-y-3">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-xl text-indigo-500 font-black">P</span>
+            <div>
+              <p className="text-lg font-black text-indigo-600">x{multiplierDisplay}</p>
+              <p className="text-xs text-gray-500">({pointPerThb} {t('membership.pointsPerThb')})</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <FontAwesomeIcon icon={faBan} className="w-5 h-5" />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{t('membership.noAds')}</p>
+          </div>
+        </div>
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+            <p className="text-sm font-medium text-slate-700">{t('membership.monthlyPointsAutoReset')}</p>
+          </div>
+          {showAiToolsBullet && (
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+              <p className="text-sm font-medium text-slate-700">{t('membership.useAiToolsFree')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onJoin}
+        className="mt-6 w-full py-3 font-semibold rounded-xl transition-all shadow-sm bg-white hover:bg-indigo-600 hover:text-white text-indigo-600 border border-gray-200"
+      >
+        {totalUsd} USD
+      </button>
+      <p className="text-sm text-gray-500 text-center mt-1.5">
+        {durationText}
+      </p>
+    </div>
+  );
+}
 
 function CheckBadge({ variant = 'default' }) {
   const classes =
@@ -134,9 +215,6 @@ export default function MembershipSection({
   elitePackage = null,
   eliteLoading = false,
   eliteError = null,
-  trialPlusPackage = null,
-  trialPlusLoading = false,
-  trialPlusError = null,
   yearlyStarterPackage = null,
   yearlyStarterLoading = false,
   yearlyStarterError = null,
@@ -185,7 +263,7 @@ export default function MembershipSection({
     const points = Number(proPackage.monthly_point ?? 0) * durationMonths;
     const normalizedPackage = {
       ...proPackage,
-      package_id: proPackage.sub_id ?? '40',
+      package_id: proPackage.sub_id ?? '41',
       product_id: proPackage.product_id,
       name: proPackage.subscription_rank ?? proPackage.name ?? t('membership.pro'),
       description: `${Number(proPackage.monthly_point ?? 0).toLocaleString()} PT/${t('membership.monthUnit')}`,
@@ -193,7 +271,7 @@ export default function MembershipSection({
       price: totalUsd,
       noAds: true,
       checkoutType: 'premium-membership',
-      subscriptionId: proPackage.sub_id ?? '40',
+      subscriptionId: proPackage.sub_id ?? '41',
       checkoutQuantity: durationMonths,
       checkoutDurationMonths: durationMonths,
       checkoutExpectedTotalUsd: totalUsd,
@@ -216,25 +294,6 @@ export default function MembershipSection({
       noAds: true,
       checkoutType: 'premium-membership',
       subscriptionId: elitePackage.sub_id ?? '44',
-    };
-    onJoin(normalizedPackage);
-  };
-
-  const handleJoinTrialPlus = () => {
-    if (!trialPlusPackage || typeof onJoin !== 'function') return;
-    const price = Number(trialPlusPackage.us_price ?? 0);
-    const points = Number(trialPlusPackage.monthly_point ?? 0) * Number(trialPlusPackage.month ?? 1);
-    const normalizedPackage = {
-      ...trialPlusPackage,
-      package_id: trialPlusPackage.sub_id ?? '52',
-      product_id: trialPlusPackage.product_id,
-      name: trialPlusPackage.subscription_rank ?? trialPlusPackage.name ?? t('membership.trialPlus'),
-      description: `${Number(trialPlusPackage.monthly_point ?? 0).toLocaleString()} PT/${t('membership.monthUnit')}`,
-      points,
-      price,
-      noAds: true,
-      checkoutType: 'premium-membership',
-      subscriptionId: trialPlusPackage.sub_id ?? '52',
     };
     onJoin(normalizedPackage);
   };
@@ -302,7 +361,7 @@ export default function MembershipSection({
   const starterTotalUsd = Number(starterPackage?.us_price ?? 0) || 45;
   const starterUsdPerMonth = starterDurationMonths > 0 ? starterTotalUsd / starterDurationMonths : starterTotalUsd;
 
-  // Pro: sub_id 40 — API base is 1 month, but checkout flow uses 3-month total
+  // Pro: sub_id 41 — monthly_point 48000, us_price 90, month 3 → $30/mo
   const proPointsPerMonth = Number(proPackage?.monthly_point ?? 0) || 48000;
   const proMonthFromApi = Number(proPackage?.month ?? 1);
   const proUsdPerMonthFromApi = Number(proPackage?.us_price ?? 0) || 30;
@@ -315,10 +374,6 @@ export default function MembershipSection({
   const eliteDurationMonths = Number(elitePackage?.month ?? 0) || 3;
   const eliteTotalUsd = Number(elitePackage?.us_price ?? 0) || 225;
   const eliteUsdPerMonth = eliteDurationMonths > 0 ? eliteTotalUsd / eliteDurationMonths : 75;
-
-  // Trial+: sub_id 52 — 35,000 PT/Month, 15 USD, 1 month; design shows "get 105,000 PT!" (35k*3)
-  const trialPlusPointsPerMonth = Number(trialPlusPackage?.monthly_point ?? 0) || 35000;
-  const trialPlusTotalUsd = Number(trialPlusPackage?.us_price ?? 0) || 15;
 
   // Yearly Starter: sub_id 53 (Starter_partner) — 18,000 PT/Month, 130 USD total, 12 months, 10.8 USD/Month, 216,000 PT, x2.5, 100 points/thb
   const yearlyStarterPointsPerMonth = Number(yearlyStarterPackage?.monthly_point ?? 0) || 18000;
@@ -338,8 +393,8 @@ export default function MembershipSection({
   const yearlyEliteTotalUsd = Number(yearlyElitePackage?.us_price ?? 0) || 1000;
   const yearlyEliteUsdPerMonth = yearlyEliteDurationMonths > 0 ? yearlyEliteTotalUsd / yearlyEliteDurationMonths : 83.3;
 
-  const isLoading = loading || starterLoading || proLoading || eliteLoading || trialPlusLoading || yearlyStarterLoading || yearlyProLoading || yearlyEliteLoading;
-  const hasError = error || starterError || proError || eliteError || trialPlusError || yearlyStarterError || yearlyProError || yearlyEliteError;
+  const isLoading = loading || starterLoading || proLoading || eliteLoading || yearlyStarterLoading || yearlyProLoading || yearlyEliteLoading;
+  const hasError = error || starterError || proError || eliteError || yearlyStarterError || yearlyProError || yearlyEliteError;
 
   if (isLoading) {
     return (
@@ -450,33 +505,18 @@ export default function MembershipSection({
           ctaVariant: 'outline',
           onClick: handleJoinElite,
         },
-        {
-          key: 'trial',
-          badge: 'Trial',
-          badgeTone: 'slate',
-          iconVariant: 'trial',
-          pointsLabel: Number(trialPlusPointsPerMonth).toLocaleString(),
-          pointsSuffix: 'Pts',
-          priceLabel: formatPrice(trialPlusTotalUsd),
-          priceTone: 'slate',
-          originalPriceLabel: null,
-          features: ['1 Month Access', 'Standard Voices', 'Try Premium Features'],
-          ctaLabel: 'Try Now',
-          ctaVariant: 'outline',
-          onClick: handleJoinTrialPlus,
-        },
       ]);
 
-  const tierGridClass = isYearly && tiers.length === 3
+  const tierGridClass = tiers.length === 3
     ? 'max-w-6xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
     : 'max-w-7xl grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
 
   return (
     <div className="py-16">
       <div className="text-center mb-16 px-4">
-        <h2 className="text-5xl font-black text-black mb-6 tracking-tight">Choose Your Package</h2>
+        <h2 className="text-5xl font-black text-black mb-6 tracking-tight">{t('membership.title')}</h2>
         <p className="text-gray-500 max-w-2xl mx-auto text-lg font-medium">
-          Simple, transparent pricing for all your voice generation needs. Select the plan that fits your workflow.
+          {t('membership.subtitle')}
         </p>
 
         <div className="mt-10 rounded-full inline-flex items-center justify-center p-1.5 bg-gray-100 border border-gray-200 shadow-sm">
@@ -509,9 +549,110 @@ export default function MembershipSection({
       </div>
 
       <div className={`${tierGridClass} mx-auto px-4 sm:px-6 lg:px-8 gap-4 sm:gap-6 mb-10`}>
-      {tiers.map(({ key, ...tierProps }) => (
-           <TierCard key={key} {...tierProps} />  // ✅ key is separate, not in the spread
-        ))}
+      {tiers.map(({ key, ...tierProps }) => {
+        if (!isYearly) {
+          if (key === 'starter' && starterPackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={starterPackage}
+                title={t('membership.starter')}
+                ctaLabel="Get Started"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinStarter}
+                pointPerThbDefault={90}
+                multiplierDefault={2.25}
+              />
+            );
+          }
+          if (key === 'pro' && proPackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={proPackage}
+                title={t('membership.pro')}
+                ctaLabel="Go Pro"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinPro}
+                pointPerThbDefault={120}
+                multiplierDefault={3}
+                showAiToolsBullet
+              />
+            );
+          }
+          if (key === 'elite' && elitePackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={elitePackage}
+                title={t('membership.elite')}
+                ctaLabel="Go Professional"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinElite}
+                pointPerThbDefault={160}
+                multiplierDefault={4}
+                showAiToolsBullet
+              />
+            );
+          }
+        }
+        if (isYearly) {
+          if (key === 'ystarter' && yearlyStarterPackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={yearlyStarterPackage}
+                title={t('membership.starter')}
+                ctaLabel="Get Started"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinYearlyStarter}
+                pointPerThbDefault={100}
+                multiplierDefault={2.5}
+                durationLabel={t('membership.total12Month')}
+              />
+            );
+          }
+          if (key === 'ypro' && yearlyProPackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={yearlyProPackage}
+                title={t('membership.pro')}
+                ctaLabel="Go Pro"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinYearlyPro}
+                pointPerThbDefault={140}
+                multiplierDefault={3.5}
+                showAiToolsBullet
+                durationLabel={t('membership.total12Month')}
+              />
+            );
+          }
+          if (key === 'yelite' && yearlyElitePackage) {
+            return (
+              <PackageCardDetailed
+                key={key}
+                pkg={yearlyElitePackage}
+                title={t('membership.elite')}
+                ctaLabel="Go Professional"
+                t={t}
+                formatPrice={formatPrice}
+                onJoin={handleJoinYearlyElite}
+                pointPerThbDefault={200}
+                multiplierDefault={5}
+                showAiToolsBullet
+                durationLabel={t('membership.total12Month')}
+              />
+            );
+          }
+        }
+        return <TierCard key={key} {...tierProps} />;
+      })}
       </div>
     </div>
   );
