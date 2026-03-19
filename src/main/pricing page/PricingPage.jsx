@@ -1,28 +1,35 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 import PricingNavbar from './Components/PricingNavbar';
 import Payment from './buy point page/Payment';
 import PricingSections from './buy point page/PricingSections';
 import PricingPageSkeleton from './buy point page/PricingPageSkeleton';
 import { AuthContext } from '../../contexts/AuthContext';
-import { getBotnoiToken } from '../../firebase/botnoi';
-import { getPackages } from '../../firebase/voiceApi';
 import Premiumpage from './Premium/Premiumpage';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../hooks/useLanguage';
 import Premiummembership from './Premium/Components/Premiummembership';
 import { useAddOnPackages } from '../../hooks/useAddOnPackages';
+import { usePointPackages } from '../../hooks/usePointPackages';
 import { useSubscriptionPackage } from '../../hooks/useSubscriptionPackage';
+import { getUserBotnoiToken } from '../../utils/botnoiToken';
+
+const VOICE_API_ORIGIN =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
+    ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
+    : 'https://api-voice.ibotnoi.com');
 
 export default function PricingPage() {
   const [activeSection, setActiveSection] = useState('buyPoints');
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
-  const [apiPackages, setApiPackages] = useState([]);
-  const [packagesLoading, setPackagesLoading] = useState(true);
   const { user } = useContext(AuthContext);
   const { t } = useLanguage();
   const isPremium = activeSection === 'premium';
+  const {
+    packages: apiPackages,
+    loading: packagesLoading,
+  } = usePointPackages();
 
   const {
     packages: premiumAddOnPackages,
@@ -61,43 +68,6 @@ export default function PricingPage() {
     error: yearlyEliteSubscriptionError,
   } = useSubscriptionPackage(45);
 
-  const getBotnoiTokenHelper = useCallback(async () => {
-    if (!user) return null;
-    const firebaseToken = await user.getIdToken();
-    const res = await getBotnoiToken(firebaseToken);
-    
-    if (typeof res === 'string') return res;
-    if (res?.token) return res.token;
-    if (res?.access_token) return res.access_token;
-    if (res?.data?.token) return res.data.token;
-    if (res?.data?.access_token) return res.data.access_token;
-    if (typeof res?.data === 'string') return res.data; // 👈 ADD THIS
-    return null;
-  }, [user]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (!user) {
-        setPackagesLoading(false);
-        return;
-      }
-      try {
-        setPackagesLoading(true);
-        const token = await getBotnoiTokenHelper();
-        if (!token || cancelled) return;
-        const list = await getPackages(token);
-        if (!cancelled) setApiPackages(Array.isArray(list) ? list : []);
-      } catch {
-        if (!cancelled) setApiPackages([]);
-      } finally {
-        if (!cancelled) setPackagesLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [user, getBotnoiTokenHelper]);
-
   const handlePurchase = (pkg) => {
     setSelectedPackage(pkg);
     setIsPaymentOpen(true);
@@ -105,7 +75,7 @@ export default function PricingPage() {
 
   const handlePaymentSubmit = useCallback(async (payload) => {
     if (!user) return;
-    const token = await getBotnoiTokenHelper();
+    const token = await getUserBotnoiToken(user);
     if (!token) throw new Error('Unable to authenticate');
       const baseUrl = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_BASE_URL) || window.location.origin;
       const pricingPageUrl = `${String(baseUrl).replace(/\/$/, '')}/Pricing`;
@@ -115,7 +85,7 @@ export default function PricingPage() {
       const addOnId = payload.basePackage?.add_id ?? payload.basePackage?.addOnId ?? 1;
 
       if (isAddOn) {
-        const addOnUrl = new URL('https://api-voice-staging.botnoi.ai/api/stripe/stripe_add_on');
+        const addOnUrl = new URL(`${VOICE_API_ORIGIN}/api/stripe/stripe_add_on`);
         addOnUrl.searchParams.set('add_id', String(addOnId));
         addOnUrl.searchParams.set('method', 'card');
         addOnUrl.searchParams.set('currency', 'usd');
@@ -181,7 +151,7 @@ export default function PricingPage() {
         success_url: pricingPageUrl,
         redirect_url: pricingPageUrl,
       };
-      const apiUrl = new URL('https://api-voice-staging.botnoi.ai/api/stripe/custom_price');
+      const apiUrl = new URL(`${VOICE_API_ORIGIN}/api/stripe/custom_price`);
       apiUrl.searchParams.set('cancel_url', pricingPageUrl);
       apiUrl.searchParams.set('return_url', pricingPageUrl);
       const res = await fetch(apiUrl.toString(), {
@@ -262,7 +232,7 @@ export default function PricingPage() {
             ? errMsg
             : 'No checkout URL received. Please try again.'
       );
-  }, [user, getBotnoiTokenHelper]);
+  }, [user]);
 
   const onClosePayment = () => {
     setIsPaymentOpen(false);

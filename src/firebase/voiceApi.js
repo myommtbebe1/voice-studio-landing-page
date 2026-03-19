@@ -3,6 +3,11 @@
  * Voice + Workspace API service (staging)
  */
 
+const VOICE_API_BASE_URL =
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_VOICE_API_BASE_URL) ||
+  "https://api-voice.ibotnoi.com";
+const VOICE_API_ORIGIN = String(VOICE_API_BASE_URL).replace(/\/$/, "");
+
 /* ----------------------------- Helpers ----------------------------- */
 
 function assertBnToken(bnToken) {
@@ -39,7 +44,7 @@ export async function getAllSpeakersV1(bnToken) {
   assertBnToken(bnToken);
 
   const res = await fetch(
-    "https://api-voice-staging.botnoi.ai/api/marketplace/get_all_marketplace",
+    `${VOICE_API_ORIGIN}/api/marketplace/get_all_marketplace`,
     {
       method: "GET",
       headers: {
@@ -61,7 +66,7 @@ export async function getAllSpeakersV2(bnToken) {
   assertBnToken(bnToken);
 
   const res = await fetch(
-    "https://api-voice-staging.botnoi.ai/api/marketplace/get_all_marketplace_v2",
+    `${VOICE_API_ORIGIN}/api/marketplace/get_all_marketplace_v2`,
     {
       method: "GET",
       headers: {
@@ -150,7 +155,7 @@ export async function generateVoice(bnToken, options) {
   };
 
   const res = await fetch(
-    "https://api-voice-staging.botnoi.ai/voice/v1/generate_voice?provider=studio",
+    `${VOICE_API_ORIGIN}/voice/v1/generate_voice?provider=studio`,
     {
       method: "POST",
       headers: {
@@ -195,14 +200,14 @@ export async function generateVoice(bnToken, options) {
  * If you use a workspace_id that is not yours, backend can return 403.
  */
 
-const WS_BASE = "https://api-voice-staging.botnoi.ai/api/workspace";
+const WS_BASE = `${VOICE_API_ORIGIN}/api/workspace`;
 
 export async function getAllWorkspaces(bnToken) {
   if (!bnToken || bnToken.trim() === '') {
     throw new Error('Botnoi token is required');
   }
 
-  const endpoint = "https://api-voice-staging.botnoi.ai/api/workspace/get_all_workspace";
+  const endpoint = `${VOICE_API_ORIGIN}/api/workspace/get_all_workspace`;
   console.log('🔍 Fetching workspaces from:', endpoint);
 
   const res = await fetch(endpoint, {
@@ -402,7 +407,7 @@ export async function saveWorkspaceText(bnToken, options) {
 const PACKAGES_ENDPOINT =
   typeof import.meta !== "undefined" && import.meta.env?.DEV
     ? "/api-voice-proxy/api/payment/v2/get_all_package"
-    : "https://api-voice-staging.botnoi.ai/api/payment/v2/get_all_package";
+    : `${VOICE_API_ORIGIN}/api/payment/v2/get_all_package`;
 
 /**
  * Normalize a single package from API (supports level or package_level).

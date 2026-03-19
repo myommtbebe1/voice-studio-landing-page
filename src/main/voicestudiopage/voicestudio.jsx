@@ -10,17 +10,17 @@ import VoiceStudioSkeleton from "./components/VoiceStudioSkeleton.jsx";
 import { useMemo, useState, useEffect, useContext, useCallback, useRef } from "react";
 import { useLanguage } from "../../hooks/useLanguage.js";
 import { AuthContext } from "../../contexts/AuthContext.jsx";
-import { getBotnoiToken } from "../../firebase/botnoi.js";
-import { 
-  getAllSpeakers, 
+import {
   generateVoice,
   getAllWorkspaces,
   createWorkspace,
   deleteWorkspace,
-  getWorkspaceContent,
   saveWorkspaceText
 } from "../../firebase/voiceApi.js";
 import { useSearchParams } from "react-router-dom";
+import { useCachedSpeakers } from "../../hooks/useCachedSpeakers.js";
+import { useCachedWorkspaceContent } from "../../hooks/useCachedWorkspaceContent.js";
+import { getUserBotnoiToken } from "../../utils/botnoiToken.js";
 
 function formatTime(totalSeconds) {
   const s = Math.max(0, Number(totalSeconds) || 0);
@@ -34,7 +34,6 @@ export default function Voicestudio() {
   const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const [speakers, setSpeakers] = useState([]);
   const [selectedVoiceId, setSelectedVoiceId] = useState(null);
   const selectedVoiceIdRef = useRef(selectedVoiceId);
   const [text, setText] = useState("");
@@ -43,7 +42,6 @@ export default function Voicestudio() {
   const [volume, setVolume] = useState(100);
   const [outputs, setOutputs] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isLoadingSpeakers, setIsLoadingSpeakers] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
@@ -75,6 +73,22 @@ export default function Voicestudio() {
   const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] = useState(false);
   const [isViewProjectsModalOpen, setIsViewProjectsModalOpen] = useState(false);
+  const [botnoiToken, setBotnoiToken] = useState(null);
+  const {
+    speakers,
+    loading: isLoadingSpeakers,
+    error: speakersError,
+  } = useCachedSpeakers();
+
+  // Use cached workspace content
+  const {
+    data: workspaceContent,
+    loading: isLoadingWorkspaceContent,
+    error: workspaceContentError
+  } = useCachedWorkspaceContent(
+    botnoiToken,
+    currentWorkspace?.workspace_id || null
+  );
 
   // Read initial text from URL params
   useEffect(() => {
@@ -94,21 +108,7 @@ export default function Voicestudio() {
       throw new Error('User not authenticated');
     }
 
-    const firebaseToken = await user.getIdToken();
-    const botnoiTokenResponse = await getBotnoiToken(firebaseToken);
-    
-    let botnoiToken;
-    if (typeof botnoiTokenResponse === 'string') {
-      botnoiToken = botnoiTokenResponse;
-    } else if (botnoiTokenResponse && typeof botnoiTokenResponse === 'object') {
-      botnoiToken = botnoiTokenResponse.token 
-        || botnoiTokenResponse.access_token 
-        || botnoiTokenResponse.jwt 
-        || botnoiTokenResponse.data?.token
-        || botnoiTokenResponse.data?.access_token;
-    } else {
-      botnoiToken = botnoiTokenResponse;
-    }
+    const botnoiToken = await getUserBotnoiToken(user);
     
     if (!botnoiToken || (typeof botnoiToken === 'string' && botnoiToken.trim() === '')) {
       throw new Error('Failed to retrieve Botnoi authentication token.');
@@ -131,6 +131,7 @@ export default function Voicestudio() {
       try {
         setIsLoadingWorkspaces(true);
         const botnoiToken = await getBotnoiTokenHelper();
+        setBotnoiToken(botnoiToken);
         const fetchedWorkspaces = await getAllWorkspaces(botnoiToken);
         
         // Transform workspaces to match our format
@@ -181,95 +182,14 @@ export default function Voicestudio() {
     selectedVoiceIdRef.current = selectedVoiceId;
   }, [selectedVoiceId]);
 
-  // Load workspace content when workspace is selected
+  // Process workspace content from cache
   useEffect(() => {
-    async function loadWorkspaceContent() {
-      // Clear outputs from previous workspace when switching
-      setOutputs([]);
-      
-      if (!currentWorkspace || !user) {
-        // If no workspace or no workspace_id, reset to default empty block
-        if (!currentWorkspace || !currentWorkspace.workspace_id) {
-          setSentenceBlocks([{
-            id: 1,
-            text: "",
-            selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
-            language: "en",
-            speed: 1.0,
-            volume: 100,
-            isGenerating: false,
-            outputs: []
-          }]);
-          setCurrentPage(1);
-        }
-        return;
-      }
+    // Clear outputs from previous workspace when switching
+    setOutputs([]);
 
-      if (!currentWorkspace.workspace_id) {
-        // Workspace without ID (default workspace), start with empty block
-        setSentenceBlocks([{
-          id: 1,
-          text: "",
-          selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
-          language: "en",
-          speed: 1.0,
-          volume: 100,
-          isGenerating: false,
-          outputs: []
-        }]);
-        setCurrentPage(1);
-        return;
-      }
-
-      try {
-        const botnoiToken = await getBotnoiTokenHelper();
-        const content = await getWorkspaceContent(botnoiToken, currentWorkspace.workspace_id);
-        
-        console.log('📂 Loaded workspace content:', content);
-        
-        // Transform workspace content to sentence blocks
-        if (content && content.text_list && Array.isArray(content.text_list) && content.text_list.length > 0) {
-          const blocks = content.text_list.map((item, index) => ({
-            id: index + 1,
-            text: item.text || "",
-            selectedVoiceId: item.speaker || null,
-            language: "en", // Default, can be extracted from item if available
-            speed: parseFloat(item.speed) || 1.0,
-            volume: parseInt(item.volume) || 100,
-            isGenerating: false,
-            outputs: item.url ? [{
-              id: Date.now() + index,
-              name: `Voice_${item.audio_id || 'output'}.mp3`,
-              durationSec: 0,
-              when: t("voicestudio.voicestudio.generatedJustNow"),
-              audioUrl: item.url,
-              persistentUrl: item.url, // Store as persistent URL since it came from server
-              blob: null, // Will be fetched if needed
-              volume: parseInt(item.volume) || 100,
-              audio_id: item.audio_id || null, // Store audio_id from saved data
-            }] : []
-          }));
-          
-          setSentenceBlocks(blocks);
-          setCurrentPage(1);
-        } else {
-          // Empty workspace, start with one empty block
-          console.log('📂 Workspace is empty, starting with empty block');
-          setSentenceBlocks([{
-            id: 1,
-            text: "",
-            selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
-            language: "en",
-            speed: 1.0,
-            volume: 100,
-            isGenerating: false,
-            outputs: []
-          }]);
-          setCurrentPage(1);
-        }
-      } catch (err) {
-        console.error("Error loading workspace content:", err);
-        // On error, start with empty block
+    if (!currentWorkspace || !user) {
+      // If no workspace or no workspace_id, reset to default empty block
+      if (!currentWorkspace || !currentWorkspace.workspace_id) {
         setSentenceBlocks([{
           id: 1,
           text: "",
@@ -282,83 +202,110 @@ export default function Voicestudio() {
         }]);
         setCurrentPage(1);
       }
+      return;
     }
 
-    loadWorkspaceContent();
-  }, [currentWorkspace, user, getBotnoiTokenHelper, t, speakers]);
+    if (!currentWorkspace.workspace_id) {
+      // Workspace without ID (default workspace), start with empty block
+      setSentenceBlocks([{
+        id: 1,
+        text: "",
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        language: "en",
+        speed: 1.0,
+        volume: 100,
+        isGenerating: false,
+        outputs: []
+      }]);
+      setCurrentPage(1);
+      return;
+    }
 
-  // Fetch speakers on component mount
+    // Handle loading state
+    if (isLoadingWorkspaceContent) {
+      return;
+    }
+
+    // Handle error state
+    if (workspaceContentError) {
+      console.error("Error loading workspace content:", workspaceContentError);
+      setSentenceBlocks([{
+        id: 1,
+        text: "",
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        language: "en",
+        speed: 1.0,
+        volume: 100,
+        isGenerating: false,
+        outputs: []
+      }]);
+      setCurrentPage(1);
+      return;
+    }
+
+    console.log('📂 Loaded workspace content:', workspaceContent);
+
+    // Transform workspace content to sentence blocks
+    if (workspaceContent && workspaceContent.text_list && Array.isArray(workspaceContent.text_list) && workspaceContent.text_list.length > 0) {
+      const blocks = workspaceContent.text_list.map((item, index) => ({
+        id: index + 1,
+        text: item.text || "",
+        selectedVoiceId: item.speaker || null,
+        language: "en", // Default, can be extracted from item if available
+        speed: parseFloat(item.speed) || 1.0,
+        volume: parseInt(item.volume) || 100,
+        isGenerating: false,
+        outputs: item.url ? [{
+          id: Date.now() + index,
+          name: `Voice_${item.audio_id || 'output'}.mp3`,
+          durationSec: 0,
+          when: t("voicestudio.voicestudio.generatedJustNow"),
+          audioUrl: item.url,
+          persistentUrl: item.url, // Store as persistent URL since it came from server
+          blob: null, // Will be fetched if needed
+          volume: parseInt(item.volume) || 100,
+          audio_id: item.audio_id || null, // Store audio_id from saved data
+        }] : []
+      }));
+
+      setSentenceBlocks(blocks);
+      setCurrentPage(1);
+    } else {
+      // Empty workspace, start with one empty block
+      console.log('📂 Workspace is empty, starting with empty block');
+      setSentenceBlocks([{
+        id: 1,
+        text: "",
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        language: "en",
+        speed: 1.0,
+        volume: 100,
+        isGenerating: false,
+        outputs: []
+      }]);
+      setCurrentPage(1);
+    }
+  }, [currentWorkspace, user, workspaceContent, isLoadingWorkspaceContent, workspaceContentError, t, speakers]);
+
   useEffect(() => {
-    async function fetchSpeakers() {
-      if (!user) {
-        setIsLoadingSpeakers(false);
-        return;
-      }
-
-      try {
-        setIsLoadingSpeakers(true);
-        setError(null);
-        
-        // Get Firebase JWT token
-        const firebaseToken = await user.getIdToken();
-        
-        // Get Botnoi token
-        const botnoiTokenResponse = await getBotnoiToken(firebaseToken);
-        
-        // Extract token - handle various response formats
-        let botnoiToken;
-        if (typeof botnoiTokenResponse === 'string') {
-          botnoiToken = botnoiTokenResponse;
-        } else if (botnoiTokenResponse && typeof botnoiTokenResponse === 'object') {
-          // Try common property names
-          botnoiToken = botnoiTokenResponse.token 
-            || botnoiTokenResponse.access_token 
-            || botnoiTokenResponse.jwt 
-            || botnoiTokenResponse.data?.token
-            || botnoiTokenResponse.data?.access_token
-            || JSON.stringify(botnoiTokenResponse); // Fallback to stringify if no token property found
-        } else {
-          botnoiToken = botnoiTokenResponse;
-        }
-        
-        // Validate token exists and is not just an object string
-        if (!botnoiToken || (typeof botnoiToken === 'string' && botnoiToken.trim() === '')) {
-          console.error('Botnoi token response:', botnoiTokenResponse);
-          throw new Error('Failed to retrieve Botnoi authentication token. Please try logging out and back in.');
-        }
-        
-        // Ensure token is a string
-        if (typeof botnoiToken !== 'string') {
-          console.error('Botnoi token is not a string:', botnoiToken);
-          throw new Error('Invalid Botnoi token format received from server.');
-        }
-        
-        console.log('Botnoi token retrieved successfully, length:', botnoiToken.length);
-        
-        // Fetch speakers (filtered for English and Myanmar)
-        const fetchedSpeakers = await getAllSpeakers(botnoiToken, ['en', 'my']);
-        
-        setSpeakers(fetchedSpeakers);
-        
-        // Select first speaker by default
-        if (fetchedSpeakers.length > 0 && !selectedVoiceId) {
-          setSelectedVoiceId(fetchedSpeakers[0].speaker_id);
-          // Also set for all sentence blocks
-          setSentenceBlocks(prev => prev.map(block => ({
-            ...block,
-            selectedVoiceId: block.selectedVoiceId || fetchedSpeakers[0].speaker_id
-          })));
-        }
-      } catch (err) {
-        console.error("Error fetching speakers:", err);
-        setError(err.message || "Failed to load speakers");
-      } finally {
-        setIsLoadingSpeakers(false);
-      }
+    if (!speakers.length || selectedVoiceId) {
+      return;
     }
 
-    fetchSpeakers();
-  }, [user]);
+    setSelectedVoiceId(speakers[0].speaker_id);
+    setSentenceBlocks((prev) =>
+      prev.map((block) => ({
+        ...block,
+        selectedVoiceId: block.selectedVoiceId || speakers[0].speaker_id,
+      }))
+    );
+  }, [selectedVoiceId, speakers]);
+
+  useEffect(() => {
+    if (speakersError) {
+      setError(speakersError);
+    }
+  }, [speakersError]);
 
   // Function to detect if text contains Myanmar script
   const detectMyanmarText = (text) => {
@@ -415,39 +362,7 @@ export default function Voicestudio() {
         }
       }
 
-      // Get Firebase JWT token
-      const firebaseToken = await user.getIdToken();
-      
-      // Get Botnoi token
-      const botnoiTokenResponse = await getBotnoiToken(firebaseToken);
-      
-      // Extract token - handle various response formats
-      let botnoiToken;
-      if (typeof botnoiTokenResponse === 'string') {
-        botnoiToken = botnoiTokenResponse;
-      } else if (botnoiTokenResponse && typeof botnoiTokenResponse === 'object') {
-        // Try common property names
-        botnoiToken = botnoiTokenResponse.token 
-          || botnoiTokenResponse.access_token 
-          || botnoiTokenResponse.jwt 
-          || botnoiTokenResponse.data?.token
-          || botnoiTokenResponse.data?.access_token
-          || JSON.stringify(botnoiTokenResponse); // Fallback to stringify if no token property found
-      } else {
-        botnoiToken = botnoiTokenResponse;
-      }
-      
-      // Validate token exists and is not just an object string
-      if (!botnoiToken || (typeof botnoiToken === 'string' && botnoiToken.trim() === '')) {
-        console.error('Botnoi token response:', botnoiTokenResponse);
-        throw new Error('Failed to retrieve Botnoi authentication token. Please try logging out and back in.');
-      }
-      
-      // Ensure token is a string
-      if (typeof botnoiToken !== 'string') {
-        console.error('Botnoi token is not a string:', botnoiToken);
-        throw new Error('Invalid Botnoi token format received from server.');
-      }
+      const botnoiToken = await getBotnoiTokenHelper();
       
       // Debug: Log the language state before generating
       console.log('🎯 Current language state:', language);
@@ -779,29 +694,7 @@ export default function Voicestudio() {
       setGeneratingBlockId(blockId);
       setError(null);
 
-      const firebaseToken = await user.getIdToken();
-      const botnoiTokenResponse = await getBotnoiToken(firebaseToken);
-      
-      let botnoiToken;
-      if (typeof botnoiTokenResponse === 'string') {
-        botnoiToken = botnoiTokenResponse;
-      } else if (botnoiTokenResponse && typeof botnoiTokenResponse === 'object') {
-        botnoiToken = botnoiTokenResponse.token 
-          || botnoiTokenResponse.access_token 
-          || botnoiTokenResponse.jwt 
-          || botnoiTokenResponse.data?.token
-          || botnoiTokenResponse.data?.access_token;
-      } else {
-        botnoiToken = botnoiTokenResponse;
-      }
-      
-      if (!botnoiToken || (typeof botnoiToken === 'string' && botnoiToken.trim() === '')) {
-        throw new Error('Failed to retrieve Botnoi authentication token.');
-      }
-      
-      if (typeof botnoiToken !== 'string') {
-        throw new Error('Invalid Botnoi token format received from server.');
-      }
+      const botnoiToken = await getBotnoiTokenHelper();
 
       const selectedSpeaker = speakers.find(s => s.speaker_id === block.selectedVoiceId);
       if (!selectedSpeaker) {

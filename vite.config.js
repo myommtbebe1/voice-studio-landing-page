@@ -12,7 +12,7 @@ export default defineConfig({
     proxy: {
       // Avoid CORS in dev: browser calls same-origin, Vite forwards to staging API
       '/api-voice-proxy': {
-        target: 'https://api-voice-staging.botnoi.ai',
+        target: 'https://api-voice.ibotnoi.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api-voice-proxy/, ''),
       },

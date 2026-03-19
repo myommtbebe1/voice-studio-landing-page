@@ -1,26 +1,20 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { getBotnoiToken } from '../firebase/botnoi';
+import { useDataCache } from './useDataCache.js';
+import { getUserBotnoiToken } from '../utils/botnoiToken.js';
+
+const ADD_ON_PACKAGES_TTL_MS = 10 * 60 * 1000;
+const VOICE_API_ORIGIN =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
+    ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
+    : 'https://api-voice.ibotnoi.com');
 
 export const useAddOnPackages = (filterDisplayName = null) => {
   const [packages, setPackages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
-
-  const getBotnoiTokenHelper = useCallback(async () => {
-    if (!user) return null;
-    const firebaseToken = await user.getIdToken();
-    const res = await getBotnoiToken(firebaseToken);
-    
-    if (typeof res === 'string') return res;
-    if (res?.token) return res.token;
-    if (res?.access_token) return res.access_token;
-    if (res?.data?.token) return res.data.token;
-    if (res?.data?.access_token) return res.data.access_token;
-    if (typeof res?.data === 'string') return res.data; // 👈 ADD THIS
-    return null;
-  }, [user]);
+  const { fetchWithCache } = useDataCache();
 
   useEffect(() => {
     let cancelled = false;
@@ -49,28 +43,38 @@ export const useAddOnPackages = (filterDisplayName = null) => {
       try {
         setLoading(true);
         setError(null);
-        const token = await getBotnoiTokenHelper();
-        if (!token || cancelled) return;
+        const result = await fetchWithCache({
+          cacheKey: 'packages:add-ons',
+          ttlMs: ADD_ON_PACKAGES_TTL_MS,
+          fetcher: () =>
+            (async () => {
+              const token = await getUserBotnoiToken(user);
+              if (!token) {
+                throw new Error('Failed to retrieve Botnoi authentication token.');
+              }
 
-        const response = await fetch(
-          'https://api-voice-staging.botnoi.ai/api/payment/v2/get_all_package_add_on',
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+              const response = await fetch(
+                `${VOICE_API_ORIGIN}/api/payment/v2/get_all_package_add_on`,
+                {
+                  method: 'GET',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                }
+              );
 
-        if (!response.ok) {
-          throw new Error(await getErrorMessage(response));
-        }
+              if (!response.ok) {
+                throw new Error(await getErrorMessage(response));
+              }
 
-        const result = await response.json();
+              const payload = await response.json();
+              return payload.data || [];
+            })(),
+        });
         
         if (!cancelled) {
-          let packageList = result.data || [];
+          let packageList = Array.isArray(result) ? result : [];
           
           // Filter by display_name if provided
           if (filterDisplayName) {
@@ -94,7 +98,7 @@ export const useAddOnPackages = (filterDisplayName = null) => {
 
     fetchAddOnPackages();
     return () => { cancelled = true; };
-  }, [user, getBotnoiTokenHelper, filterDisplayName]);
+  }, [fetchWithCache, filterDisplayName, user]);
 
   return { packages, loading, error };
 };

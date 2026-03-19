@@ -1,8 +1,13 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
-import { getBotnoiToken } from '../firebase/botnoi';
+import { useDataCache } from './useDataCache.js';
+import { getUserBotnoiToken } from '../utils/botnoiToken.js';
 
-const SUBSCRIPTION_PACKAGE_API = 'https://api-voice-staging.botnoi.ai/api/payment/v2/get_subscription_package';
+const SUBSCRIPTION_PACKAGE_API =
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
+    ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
+    : 'https://api-voice.ibotnoi.com') + '/api/payment/v2/get_subscription_package';
+const SUBSCRIPTION_PACKAGE_TTL_MS = 10 * 60 * 1000;
 
 /**
  * Fetches a single subscription package by sub_id (e.g. 38 for Starter).
@@ -14,17 +19,7 @@ export function useSubscriptionPackage(subId) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
-
-  const getBotnoiTokenHelper = useCallback(async () => {
-    if (!user) return null;
-    const firebaseToken = await user.getIdToken();
-    const res = await getBotnoiToken(firebaseToken);
-    if (typeof res === 'string') return res;
-    if (res?.token) return res.token;
-    if (res?.access_token) return res.access_token;
-    if (res?.data?.token) return res.data.token;
-    return res?.data?.access_token ?? null;
-  }, [user]);
+  const { fetchWithCache } = useDataCache();
 
   useEffect(() => {
     if (subId == null || subId === '') {
@@ -44,21 +39,30 @@ export function useSubscriptionPackage(subId) {
       try {
         setLoading(true);
         setError(null);
-        const token = await getBotnoiTokenHelper();
-        if (!token || cancelled) return;
+        const result = await fetchWithCache({
+          cacheKey: `packages:subscription:${subId}`,
+          ttlMs: SUBSCRIPTION_PACKAGE_TTL_MS,
+          fetcher: () =>
+            (async () => {
+              const token = await getUserBotnoiToken(user);
+              if (!token) {
+                throw new Error('Failed to retrieve Botnoi authentication token.');
+              }
 
-        const url = `${SUBSCRIPTION_PACKAGE_API}?sub_id=${encodeURIComponent(subId)}`;
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+              const url = `${SUBSCRIPTION_PACKAGE_API}?sub_id=${encodeURIComponent(subId)}`;
+              const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+              });
+
+              if (!response.ok) throw new Error('Failed to fetch subscription package');
+
+              return await response.json();
+            })(),
         });
-
-        if (!response.ok) throw new Error('Failed to fetch subscription package');
-
-        const result = await response.json();
 
         if (!cancelled) {
           const data = result?.data ?? result;
@@ -97,7 +101,7 @@ export function useSubscriptionPackage(subId) {
 
     fetchSubscriptionPackage();
     return () => { cancelled = true; };
-  }, [user, getBotnoiTokenHelper, subId]);
+  }, [fetchWithCache, subId, user]);
 
   return { package: packageData, loading, error };
 }
