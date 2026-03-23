@@ -17,7 +17,7 @@ import { getUserBotnoiToken } from '../../utils/botnoiToken';
 const VOICE_API_ORIGIN =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
     ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
-    : 'https://api-voice.ibotnoi.com');
+    : 'https://api-voice.botnoi.ai');
 
 export default function PricingPage() {
   const [activeSection, setActiveSection] = useState('buyPoints');

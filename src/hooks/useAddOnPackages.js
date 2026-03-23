@@ -7,7 +7,7 @@ const ADD_ON_PACKAGES_TTL_MS = 10 * 60 * 1000;
 const VOICE_API_ORIGIN =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
     ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
-    : 'https://api-voice.ibotnoi.com');
+    : 'https://api-voice.botnoi.ai');
 
 export const useAddOnPackages = (filterDisplayName = null) => {
   const [packages, setPackages] = useState([]);
