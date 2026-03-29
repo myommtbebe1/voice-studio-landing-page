@@ -1,22 +1,27 @@
-// Module-level cache for deduplicating in-flight firebase_auth requests (for non-React callers)
+// In-flight dedupe (same JWT, parallel callers) + short TTL cache (navigation remounts)
 const inFlightTokenRequests = new Map();
+const botnoiTokenResultCache = new Map();
+const BOTNOI_TOKEN_TTL_MS = 5 * 60 * 1000;
 
 const VOICE_API_BASE_URL =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_VOICE_API_BASE_URL) ||
-  "https://api-voice.ibotnoi.com";
+  "https://api-voice.botnoi.ai";
 
 export async function getBotnoiToken(firebaseJwt) {
   if (!firebaseJwt || firebaseJwt.trim() === '') {
     throw new Error('Firebase JWT token is required but was not provided');
   }
 
-  // Check if request is already in-flight for this firebase JWT
+  const now = Date.now();
+  const cached = botnoiTokenResultCache.get(firebaseJwt);
+  if (cached && now - cached.at < BOTNOI_TOKEN_TTL_MS) {
+    return cached.value;
+  }
+
   if (inFlightTokenRequests.has(firebaseJwt)) {
-    console.log('🔄 Reusing in-flight firebase_auth request (deduplication)');
     return inFlightTokenRequests.get(firebaseJwt);
   }
 
-  // Create the fetch request and cache it
   const request = (async () => {
     const res = await fetch(
       `${String(VOICE_API_BASE_URL).replace(/\/$/, "")}/api/dashboard/firebase_auth`,
@@ -50,6 +55,7 @@ export async function getBotnoiToken(firebaseJwt) {
       console.warn('Botnoi token response is empty or undefined');
     }
 
+    botnoiTokenResultCache.set(firebaseJwt, { value: tokenResult, at: Date.now() });
     return tokenResult;
   })();
 

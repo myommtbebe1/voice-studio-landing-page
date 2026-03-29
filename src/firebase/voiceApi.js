@@ -1,11 +1,11 @@
 /**
  * voiceApi.js
- * Voice + Workspace API service (staging)
+ * Voice + Workspace API service
  */
 
 const VOICE_API_BASE_URL =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_VOICE_API_BASE_URL) ||
-  "https://api-voice.ibotnoi.com";
+  "https://api-voice.botnoi.ai";
 const VOICE_API_ORIGIN = String(VOICE_API_BASE_URL).replace(/\/$/, "");
 
 /* ----------------------------- Helpers ----------------------------- */

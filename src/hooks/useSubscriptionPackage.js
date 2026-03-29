@@ -6,7 +6,7 @@ import { getUserBotnoiToken } from '../utils/botnoiToken.js';
 const SUBSCRIPTION_PACKAGE_API =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_VOICE_API_BASE_URL
     ? String(import.meta.env.VITE_VOICE_API_BASE_URL).replace(/\/$/, '')
-    : 'https://api-voice.ibotnoi.com') + '/api/payment/v2/get_subscription_package';
+    : 'https://api-voice.botnoi.ai') + '/api/payment/v2/get_subscription_package';
 const SUBSCRIPTION_PACKAGE_TTL_MS = 10 * 60 * 1000;
 
 /**
