@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import "./App.css";
 
 import Navbar from "./main/navbar"
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         {/* Main Content — pt offsets fixed navbar height */}
         <main className="pt-[72px]">
           <Outlet/>
+          <ScrollToTopButton/>
         </main>
         
         {/* Nested routes like /login will render here */}

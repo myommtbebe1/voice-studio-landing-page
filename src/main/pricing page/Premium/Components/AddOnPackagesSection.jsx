@@ -67,7 +67,7 @@ export default function AddOnPackagesSection({
     WebkitBackdropFilter: 'blur(20px)',
   };
   const cardClassName =
-    'relative rounded-[3rem] p-8 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8 transition-all duration-300 overflow-visible group border-2 border-gray-100 bg-white shadow-lg hover:shadow-xl hover:shadow-purple-200/30 hover:-translate-y-0.5';
+    'relative rounded-[3rem] px-8 pb-8 pt-14 max-[380px]:pt-16 sm:p-10 flex flex-col md:flex-row items-center justify-between gap-8 transition-all duration-300 overflow-visible group border-2 border-gray-100 bg-white shadow-lg hover:shadow-xl hover:shadow-purple-200/30 hover:-translate-y-0.5';
 
   return (
     <>
@@ -95,22 +95,22 @@ export default function AddOnPackagesSection({
                 style={cardStyle}
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white/80 backdrop-blur-md px-8 py-2 rounded-full border border-indigo-100 shadow-sm">
-                  <span className="text-indigo-900 font-black text-xs uppercase tracking-widest">
+                <div className="absolute -top-4 left-1/2 z-20 max-w-[calc(100%-1.5rem)] -translate-x-1/2 bg-white/80 backdrop-blur-md px-4 max-[380px]:px-3 py-2 rounded-full border border-indigo-100 shadow-sm">
+                  <span className="text-indigo-900 font-black text-[10px] max-[380px]:text-[9px] sm:text-xs uppercase tracking-widest truncate block text-center">
                     {displayName || (pkg?.NoAds ? 'No Ads' : 'More Text')}
                   </span>
                 </div>
 
-                <div className="text-center md:text-left relative z-10">
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
+                <div className="text-center md:text-left relative z-10 w-full min-w-0">
+                  <div className="flex flex-col items-center gap-2 mb-3 md:flex-row md:flex-wrap md:items-center md:justify-start md:gap-4">
                     {hasDiscount && (
-                      <span className="text-slate-400 text-2xl line-through font-bold opacity-50">
+                      <span className="text-slate-400 text-base max-[380px]:text-sm sm:text-xl md:text-2xl line-through font-bold opacity-50 text-center md:text-left whitespace-normal wrap-break-word max-w-full">
                         {formatPrice(original)}/{t('membership.perMonth')}
                       </span>
                     )}
-                    <span className="text-3xl font-black text-indigo-600">
+                    <span className="text-2xl max-[380px]:text-xl sm:text-3xl font-black text-indigo-600 text-center md:text-left wrap-break-word max-w-full leading-tight">
                       {t('membership.special')} {formatPrice(currentPrice)}
-                      <span className="text-sm">/{t('membership.perMonth')}</span>
+                      <span className="text-xs sm:text-sm">/{t('membership.perMonth')}</span>
                     </span>
                   </div>
                   <p className="text-slate-600 text-xl font-medium">

@@ -411,10 +411,11 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
 
   return (
     <>
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12">
+    <div className="w-full max-w-[1280px] mx-auto px-4 sm:px-6 space-y-10 sm:space-y-12">
       {/* ——— Hot Deals: gradient container with glass cards + illustration ——— */}
+      {/* min-[770px]: center block; card row stacks price under points (aligned with header "Pts" column visually) */}
       <section className="w-full">
-        <div className="relative w-full mb-16 p-8 md:p-10 rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-xl">
+        <div className="relative w-full mx-auto mb-16 min-[770px]:max-w-[min(100%,64rem)] p-8 md:p-10 rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-800 text-white shadow-xl">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32" aria-hidden />
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/5 rounded-full -ml-24 -mb-24" aria-hidden />
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
@@ -435,12 +436,12 @@ export default function PricingSections({ onPurchase, apiPackages = [], packages
                     return (
                       <div key={pkg.level ?? pkg.points} className="backdrop-blur-sm bg-white/10 rounded-2xl p-4 flex flex-col justify-between hover:bg-white/20 hover:scale-105 transition-all duration-200 border border-white/10">
                         <div>
-                          <div className="flex justify-between items-start mb-2">
-                            <div>
+                          <div className="mb-2 flex flex-row justify-between items-start min-[770px]:flex-col min-[770px]:items-end min-[770px]:gap-1">
+                            <div className="min-[770px]:text-right">
                               <span className="text-2xl font-black block tabular-nums">{Number(pkg.points).toLocaleString()}</span>
                               <span className="text-xs uppercase font-bold opacity-80">{t('pricing.points')}</span>
                             </div>
-                            <div className="text-right">
+                            <div className="text-right min-[770px]:w-full">
                               <span className="text-xl font-bold block text-yellow-400 tabular-nums">{hotDealPriceDisplay.display} {hotDealPriceDisplay.currency}</span>
                               {!saleExpired && hotDealOriginalPriceDisplay && (
                                 <span className="text-[10px] line-through opacity-60">{hotDealOriginalPriceDisplay.display} {hotDealOriginalPriceDisplay.currency}</span>
