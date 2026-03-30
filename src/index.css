@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+/* Material Symbols Outlined - icon font for block, star, etc. */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1em;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Skeleton loading shimmer */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 0%,
+    #f3f4f6 50%,
+    #e5e7eb 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: inherit;
+}
+
+/* Plan price / points: gradient text (background from inline style, clip/transparent enforced) */
+.price-gradient-text {
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* Point group: hide extra tiers when collapsed (matches reference app-point-list) */
+.hide {
+  display: none !important;
+}
+
+/* Animated gradient shifting for premium voice cards */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Premium card: multiple gradient borders (vary by card) - deeper/darker shades */
+.premium-card-border-gold {
+  background: linear-gradient(90deg, #d97706, #f59e0b, #fbbf24, #d97706);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.premium-card-border-purple-pink-orange {
+  background: linear-gradient(90deg, #8b5cf6, #db2777, #ea580c, #8b5cf6);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.premium-card-border-blue-purple-pink {
+  background: linear-gradient(90deg, #2563eb, #7c3aed, #ec4899, #2563eb);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.premium-card-border-yellow-orange {
+  background: linear-gradient(90deg, #f59e0b, #ea580c, #fbbf24, #f59e0b);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.premium-card-border-purple-blue {
+  background: linear-gradient(90deg, #7c3aed, #2563eb, #8b5cf6, #7c3aed);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+.premium-card-border-pink-purple {
+  background: linear-gradient(90deg, #db2777, #8b5cf6, #ec4899, #db2777);
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Premium card avatar: shifting gradient backgrounds (vary by index) */
+.premium-avatar-gold {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #fcd34d, #fbbf24);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+.premium-avatar-blue-purple {
+  background: linear-gradient(135deg, #93c5fd, #a78bfa, #c4b5fd, #93c5fd);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+.premium-avatar-pink-purple {
+  background: linear-gradient(135deg, #f9a8d4, #c084fc, #e879f9, #f9a8d4);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+.premium-avatar-yellow-orange {
+  background: linear-gradient(135deg, #fcd34d, #fb923c, #fbbf24, #fcd34d);
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
