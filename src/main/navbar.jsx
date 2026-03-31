@@ -40,11 +40,11 @@ function Navbar() {
     <div>
       <nav className="fixed top-0 left-0 right-0 z-[1000] w-full bg-white backdrop-blur-lg border-b border-white/30 shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition-all duration-300">
         <div className="max-w-[1280px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 max-[375px]:gap-2">
             <div className="flex items-center gap-3 text-primary">
               <Link to="/" className="flex items-center gap-3">
                 <img
-                  src="https://voice-staging.botnoi.ai/assets/icons/navbar-v2/logo_mobile2.webp"
+                  src="https://voice.botnoi.ai/assets/icons/navbar-v2/logo_mobile2.webp"
                   alt="Botnoi Voice"
                   className="h-8 w-auto object-contain"
                 />
@@ -157,11 +157,11 @@ function Navbar() {
               </a>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 max-[375px]:gap-1.5 max-[320px]:gap-1">
 
               <LanguageButton />
 
-              <div className="flex space-x-3">
+              <div className="flex space-x-3 max-[375px]:space-x-1.5 max-[320px]:space-x-1">
                 {!user &&
                   <>
                     <button

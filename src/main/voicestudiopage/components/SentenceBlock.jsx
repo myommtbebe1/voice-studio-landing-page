@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "../../../hooks/useLanguage.js";
+import { resolveSpeakerPortraitUrl } from "../../../utils/speakerImage.js";
 import Emotionstyle from "./emotionstyle.jsx";
 
 export default function SentenceBlock({
@@ -158,6 +159,18 @@ export default function SentenceBlock({
     return String(s.speaker_id) === String(selectedVoiceId) || s.speaker_id === selectedVoiceId;
   });
 
+  const blockPortrait = selectedSpeaker
+    ? resolveSpeakerPortraitUrl(selectedSpeaker)
+    : null;
+  const voiceDisplayName = selectedSpeaker
+    ? String(
+        selectedSpeaker.eng_name ||
+          selectedSpeaker.speaker_name ||
+          selectedSpeaker.thai_name ||
+          ""
+      ).trim()
+    : "";
+
   // Debug logging
   if (!selectedSpeaker && selectedVoiceId) {
     console.log('⚠️ Speaker not found:', {
@@ -178,33 +191,46 @@ export default function SentenceBlock({
               onOpenVoiceSelector(id);
             }
           }}
-          className="flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-          title={selectedSpeaker ? `Voice: ${selectedSpeaker.eng_name || selectedSpeaker.speaker_name || 'Unknown'}` : "Click to select voice"}
+          className="flex flex-col items-center gap-1 flex-shrink-0 w-[4.75rem] cursor-pointer hover:opacity-80 transition-opacity text-center"
+          title={
+            voiceDisplayName
+              ? voiceDisplayName
+              : t("voicestudio.editor.selectVoice")
+          }
         >
-          {selectedSpeaker?.image ? (
+          {blockPortrait ? (
             <>
               <img
-                src={selectedSpeaker.image}
-                alt={selectedSpeaker.eng_name || selectedSpeaker.speaker_name}
+                src={blockPortrait}
+                alt={voiceDisplayName || t("voicestudio.editor.selectVoice")}
                 className="w-10 h-10 rounded-full object-cover border-2 border-slate-200"
                 onError={(e) => {
-                  // Hide image and show placeholder if image fails to load
-                  e.target.style.display = 'none';
-                  const placeholder = e.target.parentElement.querySelector('.avatar-placeholder');
-                  if (placeholder) {
-                    placeholder.style.display = 'flex';
-                  }
+                  e.target.style.display = "none";
+                  const placeholder = e.target.parentElement?.querySelector(
+                    ".avatar-placeholder"
+                  );
+                  if (placeholder) placeholder.style.display = "flex";
                 }}
               />
-              <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center avatar-placeholder" style={{ display: 'none' }}>
-                <span className="material-icons-round text-slate-400">person</span>
+              <div
+                className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center avatar-placeholder"
+                style={{ display: "none" }}
+              >
+                <span className="material-icons-round text-slate-400 text-xl">
+                  person
+                </span>
               </div>
             </>
           ) : (
-            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-              <span className="material-icons-round text-slate-400">person</span>
+            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+              <span className="material-icons-round text-slate-400 text-xl">
+                person
+              </span>
             </div>
           )}
+          <span className="text-[10px] leading-tight font-semibold text-slate-600 max-w-full px-0.5 line-clamp-2 break-words">
+            {voiceDisplayName || t("voicestudio.editor.selectVoice")}
+          </span>
         </button>
         <div className="flex-1">
           <textarea
@@ -316,8 +342,8 @@ export default function SentenceBlock({
           )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap">
+        <div className="flex items-center justify-between max-[377px]:flex-col max-[375px]:items-center max-[375px]:gap-2">
+          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide whitespace-nowrap max-[375px]:whitespace-normal max-[375px]:w-full max-[375px]:text-center">
             {t("voicestudio.editor.premiumQuota")} <span className="text-indigo-600 ml-1">3 {t("voicestudio.editor.times")}</span>
           </span>
 
@@ -332,6 +358,7 @@ export default function SentenceBlock({
               hover:from-indigo-600 hover:to-purple-700
               hover:shadow-xl hover:-translate-y-0.5
               transition-all duration-200
+              max-[375px]:w-full max-[375px]:px-4 max-[375px]:text-center
               ${isGenerating || !text.trim() ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             `}
           >

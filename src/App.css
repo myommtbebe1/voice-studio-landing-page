@@ -32,6 +32,16 @@ body {
        /* base */
     transition: background-color 150ms ease;
   }
+
+  /* Make language button fit small nav widths (e.g. 320px). */
+  @media (max-width: 375px) {
+    .lang-btn {
+      min-width: 40px !important;
+      height: 36px !important;
+      padding: 0 8px !important;
+      gap: 6px;
+    }
+  }
   
   .lang-btn:hover {
     background: #a2a2a2;         /* hover color */

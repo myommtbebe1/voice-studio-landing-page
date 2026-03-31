@@ -124,7 +124,8 @@
       "premium": "Premium",
       "premiumQuota": "Premium Quota",
       "times": "times",
-      "generate": "Generate"
+      "generate": "Generate",
+      "selectVoice": "Select voice"
     },
     "rightSidebar": {
       "outputDeck": "OUTPUT DECK",

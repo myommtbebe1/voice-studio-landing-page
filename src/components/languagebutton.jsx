@@ -38,20 +38,19 @@ function LanguageButton() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        className="lang-btn flex items-center gap-2 border border-gray-200 rounded-full"
+        className="lang-btn flex items-center gap-2 border border-gray-200 rounded-full max-[375px]:gap-1 max-[375px]:px-2 max-[375px]:py-1"
         onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
       >
         {/* <FontAwesomeIcon icon={faEarthAmericas} className="lang-btn-icon" /> */}
-        <span className="text-sm text-gray-600 font-semibold uppercase">
+        <span className="text-sm text-gray-600 font-semibold uppercase max-[375px]:text-xs">
           {language === "en" ? "EN" : "MM"}
         </span>
         <FontAwesomeIcon
           icon={faAngleDown}
-          className="lang-btn-icon"
+          className="lang-btn-icon text-[14px] max-[375px]:text-[12px]"
           style={{
             transform: isLangDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s",
-            fontSize: "14px"
           }}
         />
       </button>

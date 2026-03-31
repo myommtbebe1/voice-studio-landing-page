@@ -29,6 +29,37 @@ function formatTime(totalSeconds) {
   return `${mm}:${ss}`;
 }
 
+function normalizeWorkspaceName(rawName, index, t) {
+  const fallbackNumber = index + 1;
+  const projectLabel = t("workspace.project") || "Project";
+  const defaultName = t("workspace.defaultProjectName") || "Project 1";
+
+  if (!rawName || typeof rawName !== "string") {
+    return fallbackNumber === 1 ? defaultName : `${projectLabel} ${fallbackNumber}`;
+  }
+
+  const trimmed = rawName.trim();
+  const genericPatterns = [
+    /^project\s*(\d+)?$/i,
+    /^โปรเจค\s*(\d+)?$/i,
+    /^ပရောဂျက်\s*(\d+)?$/u,
+  ];
+
+  for (const pattern of genericPatterns) {
+    const match = trimmed.match(pattern);
+    if (match) {
+      const parsedNumber = Number(match[1]);
+      const numberToUse = Number.isFinite(parsedNumber) && parsedNumber > 0
+        ? parsedNumber
+        : fallbackNumber;
+
+      return numberToUse === 1 ? defaultName : `${projectLabel} ${numberToUse}`;
+    }
+  }
+
+  return rawName;
+}
+
 export default function Voicestudio() {
   const { t } = useLanguage();
   const { user } = useContext(AuthContext);
@@ -138,7 +169,7 @@ export default function Voicestudio() {
         const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
           id: ws.workspace_id || ws.id || index + 1,
           workspace_id: ws.workspace_id || ws.id,
-          name: ws.workspace || ws.name || `Project ${index + 1}`,
+          name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
           type_workspace: ws.type_workspace || 'conversation',
           isLoading: false
         }));
@@ -807,7 +838,7 @@ export default function Voicestudio() {
       const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
         id: ws.workspace_id || ws.id || index + 1,
         workspace_id: ws.workspace_id || ws.id,
-        name: ws.workspace || ws.name || `Project ${index + 1}`,
+        name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
         type_workspace: ws.type_workspace || "conversation",
         isLoading: false
       }));
@@ -851,7 +882,7 @@ export default function Voicestudio() {
       const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
         id: ws.workspace_id || ws.id || index + 1,
         workspace_id: ws.workspace_id || ws.id,
-        name: ws.workspace || ws.name || `Project ${index + 1}`,
+        name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
         type_workspace: ws.type_workspace || 'conversation',
         isLoading: false
       }));
