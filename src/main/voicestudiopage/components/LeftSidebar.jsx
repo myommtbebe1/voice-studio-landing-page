@@ -120,10 +120,11 @@ export default function LeftSidebar({
                 const active = selectedVoiceId === voice.id;
                 const isPlaying = playingAudioId === voice.id;
                 const speaker = voice.speaker;
+                const uniqueKey = `${voice.id}_${speaker?.isV2 === true ? "v2" : "v1"}`;
 
                 return (
                   <div
-                    key={voice.id}
+                    key={uniqueKey}
                     className={[
                       "w-full rounded-xl shadow-md transition-all duration-300 group relative p-[2px]",
                       active

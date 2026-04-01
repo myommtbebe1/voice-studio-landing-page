@@ -750,8 +750,9 @@ export default function Voicestudio() {
         throw new Error('Received empty or invalid audio blob from server');
       }
 
-      // Use persistent URL if available, otherwise create blob URL for immediate playback
-      const audioUrl = persistentUrl || URL.createObjectURL(audioBlob);
+      // Prefer the generated blob URL for playback.
+      // Persistent URLs can be signed/expired or blocked by CORS, which leads to NotSupportedError.
+      const audioUrl = URL.createObjectURL(audioBlob) || persistentUrl;
       const newOutputId = Date.now();
       
       const audio = new Audio();

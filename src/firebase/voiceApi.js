@@ -157,8 +157,8 @@ export async function generateVoice(bnToken, options) {
   // In dev, route through Vite proxy to avoid CORS issues with cross-origin requests.
   const generateVoiceEndpoint =
     typeof import.meta !== "undefined" && import.meta.env?.DEV
-      ? "/api-voice-proxy/voice/v1/generate_voice?provider=studio"
-      : `${VOICE_API_ORIGIN}/voice/v1/generate_voice?provider=studio`;
+      ? "/api-voice-proxy/voice/v2/generate_voice?provider=studio"
+      : `${VOICE_API_ORIGIN}/voice/v2/generate_voice?provider=studio`;
 
   const res = await fetch(generateVoiceEndpoint, {
       method: "POST",
@@ -174,20 +174,167 @@ export async function generateVoice(bnToken, options) {
     throw new Error(`generate_voice failed: ${res.status} ${txt}`);
   }
 
-  // API might return JSON with a URL
-  const contentType = res.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) {
-    const json = await res.json();
-    const audioUrl = json?.data;
-    if (!audioUrl) throw new Error(`Unexpected JSON response: ${JSON.stringify(json)}`);
+  const findFirstHttpUrl = (obj, seen = new Set()) => {
+    if (obj == null || seen.has(obj)) return null;
+    if (typeof obj === "string") {
+      const s = obj.trim();
+      if (s.startsWith("http://") || s.startsWith("https://")) return s;
+      return null;
+    }
+    if (typeof obj !== "object") return null;
+    seen.add(obj);
+    if (Array.isArray(obj)) {
+      for (const item of obj) {
+        const u = findFirstHttpUrl(item, seen);
+        if (u) return u;
+      }
+      return null;
+    }
+    for (const key of [
+      "url",
+      "audio_url",
+      "file_url",
+      "download_url",
+      "path",
+      "data",
+      "result",
+    ]) {
+      if (key in obj) {
+        const u = findFirstHttpUrl(obj[key], seen);
+        if (u) return u;
+      }
+    }
+    for (const value of Object.values(obj)) {
+      const u = findFirstHttpUrl(value, seen);
+      if (u) return u;
+    }
+    return null;
+  };
 
+  const findRequestId = (obj, seen = new Set()) => {
+    if (obj == null || seen.has(obj)) return null;
+    if (typeof obj !== "object") return null;
+    seen.add(obj);
+
+    const direct =
+      obj.request_id ??
+      obj.requestId ??
+      obj.job_id ??
+      obj.jobId ??
+      obj.queue_id ??
+      obj.queueId ??
+      null;
+    if (direct != null && String(direct).trim() !== "") return String(direct);
+
+    for (const value of Object.values(obj)) {
+      if (typeof value === "object") {
+        const nested = findRequestId(value, seen);
+        if (nested) return nested;
+      }
+    }
+    return null;
+  };
+
+  const fetchAudioBlobFromUrl = async (audioUrl) => {
     const audioRes = await fetch(audioUrl);
     if (!audioRes.ok) {
       throw new Error(`Failed to fetch audio URL: ${audioRes.status} ${audioRes.statusText}`);
     }
-    const blob = await audioRes.blob();
-    // Return both blob and persistent URL so it can be saved
-    return { blob, persistentUrl: audioUrl, audio_id };
+    return await audioRes.blob();
+  };
+
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  // API may return direct URL OR queue response with request_id.
+  const contentType = res.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) {
+    const json = await res.json();
+    const immediateAudioUrl = findFirstHttpUrl(json);
+    if (immediateAudioUrl) {
+      const blob = await fetchAudioBlobFromUrl(immediateAudioUrl);
+      return { blob, persistentUrl: immediateAudioUrl, audio_id };
+    }
+
+    const requestId = findRequestId(json);
+    if (!requestId) {
+      throw new Error(`Unexpected JSON response (no audio URL): ${JSON.stringify(json)}`);
+    }
+
+    // Poll a small set of known queue result endpoints.
+    // Important: avoid spamming too many requests (that’s why you were seeing “non stop generating”).
+    const queueStatusPaths = [
+      "/voice/v2/get_generate_voice_queue",
+      "/voice/v2/generate_voice_queue_result",
+      "/voice/v2/queue_result",
+      "/voice/v2/get_queue",
+    ];
+
+    const notFoundPaths = new Set();
+    const authOnlyHeaders = { Authorization: `Bearer ${bnToken}` };
+
+    const tryReadStatus = async (path) => {
+      if (notFoundPaths.has(path)) return { kind: "skip" };
+
+      const qs = `request_id=${encodeURIComponent(requestId)}&ngsw-bypass=true`;
+      const endpoint =
+        typeof import.meta !== "undefined" && import.meta.env?.DEV
+          ? `/api-voice-proxy${path}?${qs}`
+          : `${VOICE_API_ORIGIN}${path}?${qs}`;
+
+      const resStatus = await fetch(endpoint, {
+        method: "GET",
+        headers: authOnlyHeaders,
+      });
+
+      if ([404, 405].includes(resStatus.status)) {
+        notFoundPaths.add(path);
+        return { kind: "notfound" };
+      }
+
+      if ([202, 204].includes(resStatus.status)) return { kind: "notready" };
+      if (!resStatus.ok) return { kind: "notready" };
+
+      const ct = resStatus.headers.get("Content-Type") || "";
+      if (!ct.includes("application/json")) {
+        const txt = await readErrorText(resStatus);
+        const u = findFirstHttpUrl(txt);
+        if (u) return { kind: "done", url: u };
+        return { kind: "notready" };
+      }
+
+      const statusJson = await resStatus.json();
+      const statusUrl = findFirstHttpUrl(statusJson);
+      if (statusUrl) return { kind: "done", url: statusUrl };
+
+      const statusText = JSON.stringify(statusJson).toLowerCase();
+      const isFailed =
+        statusText.includes("failed") ||
+        statusText.includes("error") ||
+        statusText.includes("\"status\":\"fail\"");
+      if (isFailed) {
+        throw new Error(`Voice queue failed: ${JSON.stringify(statusJson)}`);
+      }
+
+      return { kind: "notready" };
+    };
+
+    const maxAttempts = 12;
+    const pollIntervalMs = 1200;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      for (const path of queueStatusPaths) {
+        const result = await tryReadStatus(path);
+        if (result.kind === "done" && result.url) {
+          const blob = await fetchAudioBlobFromUrl(result.url);
+          return { blob, persistentUrl: result.url, audio_id };
+        }
+      }
+
+      await sleep(pollIntervalMs);
+    }
+
+    throw new Error(
+      `Voice queue timeout: request_id=${requestId}. Audio URL not ready in time.`
+    );
   }
 
   // Or direct blob - in this case there's no persistent URL

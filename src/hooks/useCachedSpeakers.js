@@ -44,7 +44,18 @@ export function useCachedSpeakers() {
         });
 
         if (!cancelled) {
-          setSpeakers(Array.isArray(data) ? data : []);
+          const list = Array.isArray(data) ? data : [];
+
+          // Deduplicate: some APIs return both v1/v2 rows that can share the same speaker_id.
+          // Use (speaker_id + isV2) as the unique identity to avoid duplicate React keys
+          // and wrong "active/play" matching.
+          const unique = new Map();
+          list.forEach((speaker) => {
+            const key = `${speaker?.speaker_id ?? ""}_${speaker?.isV2 === true ? "v2" : "v1"}`;
+            if (!unique.has(key)) unique.set(key, speaker);
+          });
+
+          setSpeakers(Array.from(unique.values()));
         }
       } catch (err) {
         console.error("Error fetching speakers:", err);
