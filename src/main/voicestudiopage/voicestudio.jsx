@@ -18,7 +18,12 @@ import {
   saveWorkspaceText
 } from "../../firebase/voiceApi.js";
 import { useSearchParams } from "react-router-dom";
-import { useCachedSpeakers } from "../../hooks/useCachedSpeakers.js";
+import { useCachedAllSpeakers } from "../../hooks/useCachedAllSpeakers.js";
+import {
+  getSpeakerPlayKey,
+  findSpeakerByPlayKey,
+  playKeyFromWorkspaceSpeaker,
+} from "../../utils/speakerPlayKey.js";
 import { useCachedWorkspaceContent } from "../../hooks/useCachedWorkspaceContent.js";
 import { getUserBotnoiToken } from "../../utils/botnoiToken.js";
 
@@ -29,35 +34,19 @@ function formatTime(totalSeconds) {
   return `${mm}:${ss}`;
 }
 
-function normalizeWorkspaceName(rawName, index, t) {
-  const fallbackNumber = index + 1;
-  const projectLabel = t("workspace.project") || "Project";
-  const defaultName = t("workspace.defaultProjectName") || "Project 1";
-
-  if (!rawName || typeof rawName !== "string") {
-    return fallbackNumber === 1 ? defaultName : `${projectLabel} ${fallbackNumber}`;
+/** Banner text for generate failures; log err for debugging. */
+function userFacingStudioGenerateError(err, t) {
+  const msg = String(err?.message || "");
+  if (msg.includes("401")) {
+    return "Authentication failed. Please try logging out and back in.";
   }
-
-  const trimmed = rawName.trim();
-  const genericPatterns = [
-    /^project\s*(\d+)?$/i,
-    /^โปรเจค\s*(\d+)?$/i,
-    /^ပရောဂျက်\s*(\d+)?$/u,
-  ];
-
-  for (const pattern of genericPatterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      const parsedNumber = Number(match[1]);
-      const numberToUse = Number.isFinite(parsedNumber) && parsedNumber > 0
-        ? parsedNumber
-        : fallbackNumber;
-
-      return numberToUse === 1 ? defaultName : `${projectLabel} ${numberToUse}`;
-    }
+  if (msg.includes("403")) {
+    return "Access denied. Please check if your account has permission to generate voice, or if the selected speaker supports the chosen language.";
   }
-
-  return rawName;
+  if (msg.includes("does not support")) {
+    return msg;
+  }
+  return t("voicestudio.voicestudio.generateFailed");
 }
 
 export default function Voicestudio() {
@@ -106,10 +95,53 @@ export default function Voicestudio() {
   const [isViewProjectsModalOpen, setIsViewProjectsModalOpen] = useState(false);
   const [botnoiToken, setBotnoiToken] = useState(null);
   const {
-    speakers,
+    speakers: rawSpeakers,
     loading: isLoadingSpeakers,
     error: speakersError,
-  } = useCachedSpeakers();
+  } = useCachedAllSpeakers();
+
+  const speakers = useMemo(() => {
+    if (!rawSpeakers.length) return [];
+
+    const sortedSpeakers = [...rawSpeakers].sort((a, b) => {
+      const aIsTest =
+        a.speaker_id === "test" ||
+        (a.eng_name && a.eng_name.toLowerCase() === "test") ||
+        (a.thai_name && a.thai_name.toLowerCase() === "test");
+      const bIsTest =
+        b.speaker_id === "test" ||
+        (b.eng_name && b.eng_name.toLowerCase() === "test") ||
+        (b.thai_name && b.thai_name.toLowerCase() === "test");
+
+      if (aIsTest && !bIsTest) return 1;
+      if (!aIsTest && bIsTest) return -1;
+      if (aIsTest && bIsTest) return 0;
+
+      const idA = parseInt(a.speaker_id, 10) || 0;
+      const idB = parseInt(b.speaker_id, 10) || 0;
+      if (idA !== idB) return idA - idB;
+
+      const aIsV2 = a.isV2 === true ? 1 : 0;
+      const bIsV2 = b.isV2 === true ? 1 : 0;
+      if (aIsV2 !== bIsV2) return aIsV2 - bIsV2;
+
+      const aName = (a.eng_name || a.thai_name || "").toLowerCase();
+      const bName = (b.eng_name || b.thai_name || "").toLowerCase();
+      if (aName !== bName) return aName.localeCompare(bName);
+
+      return 0;
+    });
+
+    const uniqueSpeakersMap = new Map();
+    sortedSpeakers.forEach((speaker) => {
+      const uniqueKey = getSpeakerPlayKey(speaker);
+      if (uniqueKey && !uniqueSpeakersMap.has(uniqueKey)) {
+        uniqueSpeakersMap.set(uniqueKey, speaker);
+      }
+    });
+
+    return Array.from(uniqueSpeakersMap.values());
+  }, [rawSpeakers]);
 
   // Use cached workspace content
   const {
@@ -169,7 +201,7 @@ export default function Voicestudio() {
         const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
           id: ws.workspace_id || ws.id || index + 1,
           workspace_id: ws.workspace_id || ws.id,
-          name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
+          name: ws.workspace || ws.name || `Project ${index + 1}`,
           type_workspace: ws.type_workspace || 'conversation',
           isLoading: false
         }));
@@ -224,7 +256,7 @@ export default function Voicestudio() {
         setSentenceBlocks([{
           id: 1,
           text: "",
-          selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+          selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? getSpeakerPlayKey(speakers[0]) : null),
           language: "en",
           speed: 1.0,
           volume: 100,
@@ -241,7 +273,7 @@ export default function Voicestudio() {
       setSentenceBlocks([{
         id: 1,
         text: "",
-        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? getSpeakerPlayKey(speakers[0]) : null),
         language: "en",
         speed: 1.0,
         volume: 100,
@@ -263,7 +295,7 @@ export default function Voicestudio() {
       setSentenceBlocks([{
         id: 1,
         text: "",
-        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? getSpeakerPlayKey(speakers[0]) : null),
         language: "en",
         speed: 1.0,
         volume: 100,
@@ -281,7 +313,10 @@ export default function Voicestudio() {
       const blocks = workspaceContent.text_list.map((item, index) => ({
         id: index + 1,
         text: item.text || "",
-        selectedVoiceId: item.speaker || null,
+        selectedVoiceId: playKeyFromWorkspaceSpeaker(
+          item.speaker,
+          item.speaker_v2
+        ),
         language: "en", // Default, can be extracted from item if available
         speed: parseFloat(item.speed) || 1.0,
         volume: parseInt(item.volume) || 100,
@@ -307,7 +342,7 @@ export default function Voicestudio() {
       setSentenceBlocks([{
         id: 1,
         text: "",
-        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? speakers[0].speaker_id : null),
+        selectedVoiceId: selectedVoiceIdRef.current || (speakers.length > 0 ? getSpeakerPlayKey(speakers[0]) : null),
         language: "en",
         speed: 1.0,
         volume: 100,
@@ -323,11 +358,12 @@ export default function Voicestudio() {
       return;
     }
 
-    setSelectedVoiceId(speakers[0].speaker_id);
+    const firstKey = getSpeakerPlayKey(speakers[0]);
+    setSelectedVoiceId(firstKey);
     setSentenceBlocks((prev) =>
       prev.map((block) => ({
         ...block,
-        selectedVoiceId: block.selectedVoiceId || speakers[0].speaker_id,
+        selectedVoiceId: block.selectedVoiceId || firstKey,
       }))
     );
   }, [selectedVoiceId, speakers]);
@@ -362,13 +398,18 @@ export default function Voicestudio() {
 
   // Get selected speaker object
   const selectedSpeaker = useMemo(() => {
-    return speakers.find(s => s.speaker_id === selectedVoiceId);
+    return findSpeakerByPlayKey(speakers, selectedVoiceId);
   }, [speakers, selectedVoiceId]);
 
   // Handle voice generation
   const handleGenerateVoice = useCallback(async () => {
     if (!user || !selectedVoiceId || !text.trim()) {
       setError("Please select a voice and enter some text");
+      return;
+    }
+
+    if (!selectedSpeaker) {
+      setError("Please select a voice from the library");
       return;
     }
 
@@ -446,15 +487,16 @@ export default function Voicestudio() {
       }
       
       // Generate voice with the determined language code
-      const audioBlob = await generateVoice(botnoiToken, {
+      const genResult = await generateVoice(botnoiToken, {
         text: text.trim(),
-        speaker: selectedVoiceId,
+        speaker: String(selectedSpeaker.speaker_id),
         language: languageToUse, // Use the language code that matches speaker's available languages
         speed: speed,
         volume: volume,
         type_media: 'mp3',
         speaker_v2: selectedSpeaker?.isV2 || false,
       });
+      const audioBlob = genResult.blob;
 
       // Validate the blob
       if (!audioBlob || audioBlob.size === 0) {
@@ -606,19 +648,7 @@ export default function Voicestudio() {
       audio.load();
     } catch (err) {
       console.error("Error generating voice:", err);
-      
-      // Provide more helpful error messages
-      let errorMessage = err.message || "Failed to generate voice";
-      
-      if (err.message && err.message.includes('403')) {
-        errorMessage = "Access denied. Please check if your account has permission to generate voice, or if the selected speaker supports the chosen language.";
-      } else if (err.message && err.message.includes('401')) {
-        errorMessage = "Authentication failed. Please try logging out and back in.";
-      } else if (err.message && err.message.includes('does not support')) {
-        errorMessage = err.message; // Use the specific error message we created
-      }
-      
-      setError(errorMessage);
+      setError(userFacingStudioGenerateError(err, t));
     } finally {
       setIsGenerating(false);
     }
@@ -629,17 +659,22 @@ export default function Voicestudio() {
     return text.length;
   }, [text]);
 
-  // Transform speakers for LeftSidebar
-  const voices = useMemo(() => {
-    return speakers.map(speaker => ({
-      id: speaker.speaker_id,
+  const voiceSections = useMemo(() => {
+    const row = (speaker) => ({
+      id: getSpeakerPlayKey(speaker),
       name: speaker.eng_name || speaker.thai_name,
       tagline: speaker.eng_voice_style?.[0] || speaker.voice_style?.[0] || "",
       image: speaker.image,
       audio: speaker.audio,
-      speaker: speaker, // Pass full speaker object
-    }));
-  }, [speakers]);
+      speaker,
+    });
+    const v1 = speakers.filter((s) => s.isV2 !== true).map(row);
+    const v2 = speakers.filter((s) => s.isV2 === true).map(row);
+    return [
+      { label: t("voicestudio.leftSidebar.marketplaceV1"), voices: v1 },
+      { label: t("voicestudio.leftSidebar.marketplaceV2"), voices: v2 },
+    ];
+  }, [speakers, t]);
 
   // Calculate pagination - limit to maximum 4 pages
   const maxPages = 4;
@@ -675,7 +710,8 @@ export default function Voicestudio() {
     setSentenceBlocks(prev => [...prev, {
       id: newId,
       text: "",
-      selectedVoiceId: selectedVoiceId || (speakers.length > 0 ? speakers[0].speaker_id : null),
+      selectedVoiceId:
+        selectedVoiceId || (speakers.length > 0 ? getSpeakerPlayKey(speakers[0]) : null),
       language: "en",
       speed: 1.0,
       volume: 100,
@@ -727,15 +763,31 @@ export default function Voicestudio() {
 
       const botnoiToken = await getBotnoiTokenHelper();
 
-      const selectedSpeaker = speakers.find(s => s.speaker_id === block.selectedVoiceId);
+      const selectedSpeaker = findSpeakerByPlayKey(speakers, block.selectedVoiceId);
       if (!selectedSpeaker) {
         throw new Error('Please select a voice');
       }
 
+      let languageToUse = block.language || "en";
+      const availableLanguages = selectedSpeaker.available_language || [];
+      if (availableLanguages.length > 0 && !availableLanguages.includes(languageToUse)) {
+        const matchingLang = availableLanguages.find(
+          (lang) =>
+            lang === languageToUse ||
+            lang.startsWith(`${languageToUse}-`) ||
+            lang.toLowerCase().startsWith(String(languageToUse).toLowerCase())
+        );
+        if (matchingLang) {
+          languageToUse = matchingLang;
+        } else {
+          languageToUse = availableLanguages[0];
+        }
+      }
+
       const result = await generateVoice(botnoiToken, {
         text: block.text.trim(),
-        speaker: block.selectedVoiceId,
-        language: block.language,
+        speaker: String(selectedSpeaker.speaker_id),
+        language: languageToUse,
         speed: block.speed,
         volume: block.volume,
         type_media: 'mp3',
@@ -750,9 +802,8 @@ export default function Voicestudio() {
         throw new Error('Received empty or invalid audio blob from server');
       }
 
-      // Prefer the generated blob URL for playback.
-      // Persistent URLs can be signed/expired or blocked by CORS, which leads to NotSupportedError.
-      const audioUrl = URL.createObjectURL(audioBlob) || persistentUrl;
+      // Use persistent URL if available, otherwise create blob URL for immediate playback
+      const audioUrl = persistentUrl || URL.createObjectURL(audioBlob);
       const newOutputId = Date.now();
       
       const audio = new Audio();
@@ -804,7 +855,7 @@ export default function Voicestudio() {
       audio.load();
     } catch (err) {
       console.error("Error generating voice for block:", err);
-      setError(err.message || "Failed to generate voice");
+      setError(userFacingStudioGenerateError(err, t));
     } finally {
       setGeneratingBlockId(null);
     }
@@ -839,7 +890,7 @@ export default function Voicestudio() {
       const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
         id: ws.workspace_id || ws.id || index + 1,
         workspace_id: ws.workspace_id || ws.id,
-        name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
+        name: ws.workspace || ws.name || `Project ${index + 1}`,
         type_workspace: ws.type_workspace || "conversation",
         isLoading: false
       }));
@@ -883,7 +934,7 @@ export default function Voicestudio() {
       const transformedWorkspaces = fetchedWorkspaces.map((ws, index) => ({
         id: ws.workspace_id || ws.id || index + 1,
         workspace_id: ws.workspace_id || ws.id,
-        name: normalizeWorkspaceName(ws.workspace || ws.name, index, t),
+        name: ws.workspace || ws.name || `Project ${index + 1}`,
         type_workspace: ws.type_workspace || 'conversation',
         isLoading: false
       }));
@@ -960,10 +1011,11 @@ export default function Voicestudio() {
         .filter(block => block.text.trim() !== '' && block.outputs && block.outputs.length > 0 && block.outputs[0]?.persistentUrl)
         .map(block => {
           const output = block.outputs && block.outputs.length > 0 ? block.outputs[0] : null;
-          const selectedSpeaker = speakers.find(s => s.speaker_id === block.selectedVoiceId);
-          
-          // Validate speaker ID exists
-          const speakerId = block.selectedVoiceId || (speakers.length > 0 ? speakers[0].speaker_id : null);
+          const selectedSpeaker = findSpeakerByPlayKey(speakers, block.selectedVoiceId);
+
+          const speakerId =
+            selectedSpeaker?.speaker_id ??
+            (speakers.length > 0 ? speakers[0].speaker_id : null);
           if (!speakerId || !output?.persistentUrl) {
             console.warn('⚠️ Skipping save for block due to missing speaker or audio URL');
             return null;
@@ -1093,7 +1145,7 @@ export default function Voicestudio() {
         )}
 
         <LeftSidebar
-          voices={voices}
+          voiceSections={voiceSections}
           selectedVoiceId={activeBlockId 
             ? sentenceBlocks.find(b => b.id === activeBlockId)?.selectedVoiceId || selectedVoiceId
             : selectedVoiceId
@@ -1120,7 +1172,7 @@ export default function Voicestudio() {
         />
 
         {/* Sentence Blocks Container */}
-        <section className="flex-1 flex flex-col bg-white relative min-w-0 overflow-y-auto">
+        <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-white">
           {/* Mobile and tablet sidebar toggle buttons */}
           <div className="lg:hidden flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-white z-20">
             <button
@@ -1142,7 +1194,7 @@ export default function Voicestudio() {
           </div>
 
           {/* Sentence Blocks */}
-          <div className="flex-1 px-4 md:px-8 py-4 overflow-y-auto">
+          <div className="max-w-full flex-1 overflow-x-hidden overflow-y-auto px-4 py-4 md:px-8">
             {currentPageBlocks.map((block) => (
               <SentenceBlock
                 key={block.id}

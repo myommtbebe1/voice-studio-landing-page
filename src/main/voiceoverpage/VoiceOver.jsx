@@ -32,7 +32,7 @@ export default function VoiceOver() {
 
   // Use cached hook instead of direct API calls
   // This automatically deduplicates marketplace and firebase_auth calls
-  const { speakers: rawSpeakers, loading, error: speakersError } = useCachedAllSpeakers();
+  const { speakers: rawSpeakers, loading, error } = useCachedAllSpeakers();
 
   // Sort and deduplicate speakers (move to useMemo to avoid recalculating on every render)
   const speakers = React.useMemo(() => {
@@ -82,18 +82,8 @@ export default function VoiceOver() {
 
   return (
     <div>
-      <VCHerosection
-        speakers={speakers}
-        loading={loading}
-        botnoiToken={botnoiToken}
-        speakersError={speakersError}
-      />
-      <VoiceCardsGrid
-        speakers={speakers}
-        loading={loading}
-        botnoiToken={botnoiToken}
-        speakersError={speakersError}
-      />
+      <VCHerosection speakers={speakers} loading={loading} botnoiToken={botnoiToken} />
+      <VoiceCardsGrid speakers={speakers} loading={loading} botnoiToken={botnoiToken} />
     </div>
   );
 }

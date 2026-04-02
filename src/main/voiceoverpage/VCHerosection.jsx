@@ -6,12 +6,7 @@ import { useLanguage } from "../../hooks/useLanguage.js";
 import { shouldIgnorePlayAbortError } from "../../utils/audioPlayErrors.js";
 import { getSpeakerPlayKey } from "../../utils/speakerPlayKey.js";
 
-export default function VCHerosection({
-  speakers,
-  loading,
-  botnoiToken,
-  speakersError = null,
-}) {
+export default function VCHerosection({ speakers, loading, botnoiToken }) {
   const [playingId, setPlayingId] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
 
@@ -171,11 +166,6 @@ export default function VCHerosection({
 
   return (
     <div className="relative w-full overflow-hidden z-0">
-      {speakersError && !loading && (
-        <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 sm:mx-8 lg:mx-[56px]">
-          {speakersError}
-        </div>
-      )}
       <div className="relative flex flex-col lg:flex-row items-center justify-start w-full min-h-[540px]">
         <div className="flex-1 max-w-2xl w-full flex justify-center lg:justify-start items-center px-4 sm:px-8 lg:px-[56px] pt-10 lg:pt-[20px] pb-8 lg:pb-[36px]">
           <div className="text-center lg:text-left">

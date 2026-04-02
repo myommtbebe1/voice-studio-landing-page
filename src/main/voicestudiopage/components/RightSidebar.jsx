@@ -105,7 +105,8 @@ export default function RightSidebar({ outputs, formatTime, isOpen = false, onCl
     <aside className={`
       fixed lg:relative inset-y-0 right-0
       flex flex-col shrink-0 z-50 lg:z-10
-      w-[320px] lg:w-[260px] xl:w-[300px] 2xl:w-[340px] bg-[#eef2ff] text-white border-l border-white/10
+      w-[85vw] max-w-[18rem] lg:w-72 lg:max-w-none
+      bg-[#eef2ff] text-white border-l border-white/10
       transition-all duration-300 ease-in-out
       ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
     `}>

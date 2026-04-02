@@ -111,7 +111,11 @@
       "similarityBoost": "ဆင်တူမှု တိုးမြှင့်ရန်",
       "noVoicesFound": "အသံများ မတွေ့ရှိပါ",
       "playPreview": "နမူနာ ဖွင့်ရန်",
-      "pausePreview": "နားထားရန်"
+      "pausePreview": "နားထားရန်",
+      "marketplaceV1": "စျေးကွက် v1",
+      "marketplaceV2": "စျေးကွက် v2",
+      "filters": "စစ်ထုတ်မှု",
+      "clearFilters": "အားလုံး ရှင်းရန်"
     },
     "editor": {
       "saving": "သိမ်းဆည်းနေသည်...",
@@ -124,8 +128,7 @@
       "premium": "ပရီမီယံ",
       "premiumQuota": "ပရီမီယံ သတ်မှတ်ချက်",
       "times": "ကြိမ်",
-      "generate": "ဖန်တီးရန်",
-      "selectVoice": "အသံ ရွေးပါ"
+      "generate": "ဖန်တီးရန်"
     },
     "rightSidebar": {
       "outputDeck": "ရလဒ်များ",
@@ -150,7 +153,8 @@
     "voicestudio": {
       "newsAnchor": "သတင်းထောက်",
       "generatedJustNow": "ယခုဖန်တီးထားသည်",
-      "addSentence": "စာကြောင်းအသစ်ထည့်ရန်"
+      "addSentence": "စာကြောင်းအသစ်ထည့်ရန်",
+      "generateFailed": "ဖန်တီးမှု မအောင်မြင်ပါ"
     }
   },
   "voiceover": {

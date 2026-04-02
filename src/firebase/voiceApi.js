@@ -8,6 +8,18 @@ const VOICE_API_BASE_URL =
   "https://api-voice.botnoi.ai";
 const VOICE_API_ORIGIN = String(VOICE_API_BASE_URL).replace(/\/$/, "");
 
+/** V1 marketplace list — pinned host; dev uses Vite proxy to avoid CORS. */
+const GET_ALL_MARKETPLACE_V1_URL =
+  typeof import.meta !== "undefined" && import.meta.env?.DEV
+    ? "/api-voice-proxy/api/marketplace/get_all_marketplace"
+    : "https://api-voice.botnoi.ai/api/marketplace/get_all_marketplace";
+
+/** V2 marketplace list — same pattern as V1. */
+const GET_ALL_MARKETPLACE_V2_URL =
+  typeof import.meta !== "undefined" && import.meta.env?.DEV
+    ? "/api-voice-proxy/api/marketplace/get_all_marketplace_v2"
+    : "https://api-voice.botnoi.ai/api/marketplace/get_all_marketplace_v2";
+
 /* ----------------------------- Helpers ----------------------------- */
 
 function assertBnToken(bnToken) {
@@ -43,15 +55,12 @@ async function readErrorText(res) {
 export async function getAllSpeakersV1(bnToken) {
   assertBnToken(bnToken);
 
-  const res = await fetch(
-    `${VOICE_API_ORIGIN}/api/marketplace/get_all_marketplace`,
-    {
-      method: "GET",
-      headers: {
-        ...authHeader(bnToken),
-      },
-    }
-  );
+  const res = await fetch(GET_ALL_MARKETPLACE_V1_URL, {
+    method: "GET",
+    headers: {
+      ...authHeader(bnToken),
+    },
+  });
 
   if (!res.ok) {
     const txt = await readErrorText(res);
@@ -65,15 +74,12 @@ export async function getAllSpeakersV1(bnToken) {
 export async function getAllSpeakersV2(bnToken) {
   assertBnToken(bnToken);
 
-  const res = await fetch(
-    `${VOICE_API_ORIGIN}/api/marketplace/get_all_marketplace_v2`,
-    {
-      method: "GET",
-      headers: {
-        ...authHeader(bnToken),
-      },
-    }
-  );
+  const res = await fetch(GET_ALL_MARKETPLACE_V2_URL, {
+    method: "GET",
+    headers: {
+      ...authHeader(bnToken),
+    },
+  });
 
   if (!res.ok) {
     const txt = await readErrorText(res);
@@ -154,19 +160,19 @@ export async function generateVoice(bnToken, options) {
     
   };
 
-  // In dev, route through Vite proxy to avoid CORS issues with cross-origin requests.
+  // v1 returns 404 on api-voice.botnoi.ai; studio generation uses v2.
   const generateVoiceEndpoint =
     typeof import.meta !== "undefined" && import.meta.env?.DEV
       ? "/api-voice-proxy/voice/v2/generate_voice?provider=studio"
       : `${VOICE_API_ORIGIN}/voice/v2/generate_voice?provider=studio`;
 
   const res = await fetch(generateVoiceEndpoint, {
-      method: "POST",
-      headers: {
-        ...authHeader(bnToken),
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+    method: "POST",
+    headers: {
+      ...authHeader(bnToken),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
@@ -174,8 +180,8 @@ export async function generateVoice(bnToken, options) {
     throw new Error(`generate_voice failed: ${res.status} ${txt}`);
   }
 
-  const findFirstHttpUrl = (obj, seen = new Set()) => {
-    if (obj == null || seen.has(obj)) return null;
+  const findFirstHttpUrl = (obj, seen = new Set(), depth = 0) => {
+    if (obj == null || depth > 10 || seen.has(obj)) return null;
     if (typeof obj === "string") {
       const s = obj.trim();
       if (s.startsWith("http://") || s.startsWith("https://")) return s;
@@ -185,159 +191,42 @@ export async function generateVoice(bnToken, options) {
     seen.add(obj);
     if (Array.isArray(obj)) {
       for (const item of obj) {
-        const u = findFirstHttpUrl(item, seen);
+        const u = findFirstHttpUrl(item, seen, depth + 1);
         if (u) return u;
       }
       return null;
     }
-    for (const key of [
-      "url",
-      "audio_url",
-      "file_url",
-      "download_url",
-      "path",
-      "data",
-      "result",
-    ]) {
+    for (const key of ["url", "audio_url", "file_url", "download_url", "path", "data", "result"]) {
       if (key in obj) {
-        const u = findFirstHttpUrl(obj[key], seen);
+        const u = findFirstHttpUrl(obj[key], seen, depth + 1);
         if (u) return u;
       }
     }
     for (const value of Object.values(obj)) {
-      const u = findFirstHttpUrl(value, seen);
+      const u = findFirstHttpUrl(value, seen, depth + 1);
       if (u) return u;
     }
     return null;
   };
 
-  const findRequestId = (obj, seen = new Set()) => {
-    if (obj == null || seen.has(obj)) return null;
-    if (typeof obj !== "object") return null;
-    seen.add(obj);
-
-    const direct =
-      obj.request_id ??
-      obj.requestId ??
-      obj.job_id ??
-      obj.jobId ??
-      obj.queue_id ??
-      obj.queueId ??
-      null;
-    if (direct != null && String(direct).trim() !== "") return String(direct);
-
-    for (const value of Object.values(obj)) {
-      if (typeof value === "object") {
-        const nested = findRequestId(value, seen);
-        if (nested) return nested;
-      }
+  const contentType = res.headers.get("Content-Type") || "";
+  if (contentType.includes("application/json")) {
+    const json = await res.json();
+    let audioUrl =
+      typeof json?.data === "string"
+        ? json.data
+        : findFirstHttpUrl(json);
+    if (!audioUrl) {
+      throw new Error(`Unexpected JSON response (no audio URL): ${JSON.stringify(json)}`);
     }
-    return null;
-  };
-
-  const fetchAudioBlobFromUrl = async (audioUrl) => {
     const audioRes = await fetch(audioUrl);
     if (!audioRes.ok) {
       throw new Error(`Failed to fetch audio URL: ${audioRes.status} ${audioRes.statusText}`);
     }
-    return await audioRes.blob();
-  };
-
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  // API may return direct URL OR queue response with request_id.
-  const contentType = res.headers.get("Content-Type") || "";
-  if (contentType.includes("application/json")) {
-    const json = await res.json();
-    const immediateAudioUrl = findFirstHttpUrl(json);
-    if (immediateAudioUrl) {
-      const blob = await fetchAudioBlobFromUrl(immediateAudioUrl);
-      return { blob, persistentUrl: immediateAudioUrl, audio_id };
-    }
-
-    const requestId = findRequestId(json);
-    if (!requestId) {
-      throw new Error(`Unexpected JSON response (no audio URL): ${JSON.stringify(json)}`);
-    }
-
-    // Poll a small set of known queue result endpoints.
-    // Important: avoid spamming too many requests (that’s why you were seeing “non stop generating”).
-    const queueStatusPaths = [
-      "/voice/v2/get_generate_voice_queue",
-      "/voice/v2/generate_voice_queue_result",
-      "/voice/v2/queue_result",
-      "/voice/v2/get_queue",
-    ];
-
-    const notFoundPaths = new Set();
-    const authOnlyHeaders = { Authorization: `Bearer ${bnToken}` };
-
-    const tryReadStatus = async (path) => {
-      if (notFoundPaths.has(path)) return { kind: "skip" };
-
-      const qs = `request_id=${encodeURIComponent(requestId)}&ngsw-bypass=true`;
-      const endpoint =
-        typeof import.meta !== "undefined" && import.meta.env?.DEV
-          ? `/api-voice-proxy${path}?${qs}`
-          : `${VOICE_API_ORIGIN}${path}?${qs}`;
-
-      const resStatus = await fetch(endpoint, {
-        method: "GET",
-        headers: authOnlyHeaders,
-      });
-
-      if ([404, 405].includes(resStatus.status)) {
-        notFoundPaths.add(path);
-        return { kind: "notfound" };
-      }
-
-      if ([202, 204].includes(resStatus.status)) return { kind: "notready" };
-      if (!resStatus.ok) return { kind: "notready" };
-
-      const ct = resStatus.headers.get("Content-Type") || "";
-      if (!ct.includes("application/json")) {
-        const txt = await readErrorText(resStatus);
-        const u = findFirstHttpUrl(txt);
-        if (u) return { kind: "done", url: u };
-        return { kind: "notready" };
-      }
-
-      const statusJson = await resStatus.json();
-      const statusUrl = findFirstHttpUrl(statusJson);
-      if (statusUrl) return { kind: "done", url: statusUrl };
-
-      const statusText = JSON.stringify(statusJson).toLowerCase();
-      const isFailed =
-        statusText.includes("failed") ||
-        statusText.includes("error") ||
-        statusText.includes("\"status\":\"fail\"");
-      if (isFailed) {
-        throw new Error(`Voice queue failed: ${JSON.stringify(statusJson)}`);
-      }
-
-      return { kind: "notready" };
-    };
-
-    const maxAttempts = 12;
-    const pollIntervalMs = 1200;
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      for (const path of queueStatusPaths) {
-        const result = await tryReadStatus(path);
-        if (result.kind === "done" && result.url) {
-          const blob = await fetchAudioBlobFromUrl(result.url);
-          return { blob, persistentUrl: result.url, audio_id };
-        }
-      }
-
-      await sleep(pollIntervalMs);
-    }
-
-    throw new Error(
-      `Voice queue timeout: request_id=${requestId}. Audio URL not ready in time.`
-    );
+    const blob = await audioRes.blob();
+    return { blob, persistentUrl: audioUrl, audio_id };
   }
 
-  // Or direct blob - in this case there's no persistent URL
   const blob = await res.blob();
   return { blob, persistentUrl: null, audio_id };
 }

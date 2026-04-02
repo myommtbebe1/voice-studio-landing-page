@@ -39,16 +39,17 @@ function Navbar() {
   return (
     <div>
       <nav className="fixed top-0 left-0 right-0 z-[1000] w-full bg-white backdrop-blur-lg border-b border-white/30 shadow-[0_12px_40px_rgba(15,23,42,0.12)] transition-all duration-300">
-        <div className="max-w-[1280px] mx-auto px-6 py-4">
-          <div className="flex items-center justify-between gap-4 max-[375px]:gap-2">
-            <div className="flex items-center gap-3 text-primary">
-              <Link to="/" className="flex items-center gap-3">
+        <div className="max-w-[1280px] mx-auto px-3 py-3 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center justify-between gap-2 sm:gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2 text-primary sm:min-w-[auto] sm:flex-none sm:gap-3">
+              <Link to="/" className="flex min-w-0 items-center gap-2 sm:gap-3">
                 <img
                   src="https://voice.botnoi.ai/assets/icons/navbar-v2/logo_mobile2.webp"
                   alt="Botnoi Voice"
-                  className="h-8 w-auto object-contain"
+                  className="h-7 w-auto shrink-0 object-contain sm:h-8"
+                  referrerPolicy="no-referrer"
                 />
-                <h2 className="text-[#0d0d1b] text-xl font-black leading-tight tracking-[-0.02em]">
+                <h2 className="min-w-0 truncate text-base font-black leading-tight tracking-[-0.02em] text-[#0d0d1b] sm:text-xl">
                   Botnoi Voice
                 </h2>
               </Link>
@@ -157,11 +158,11 @@ function Navbar() {
               </a>
             </div>
 
-            <div className="flex items-center gap-3 max-[375px]:gap-1.5 max-[320px]:gap-1">
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
 
               <LanguageButton />
 
-              <div className="flex space-x-3 max-[375px]:space-x-1.5 max-[320px]:space-x-1">
+              <div className="flex space-x-3">
                 {!user &&
                   <>
                     <button
@@ -197,7 +198,7 @@ function Navbar() {
                         </div>
                       )}
                     </div>
-                    <button className="flex size-10 items-center justify-center rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-[#0d0d1b] dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors overflow-hidden" aria-label={t("nav.profile") || "User profile"}>
+                    <button className="flex size-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[#0d0d1b] overflow-hidden transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 sm:size-10" aria-label={t("nav.profile") || "User profile"}>
                       {(() => {
                         const photoURL = user?.photoURL || user?.providerData?.[0]?.photoURL;
                         return photoURL && !profileImageError ? (
@@ -222,13 +223,13 @@ function Navbar() {
               </div>
               {/* Mobile Hamburger Button */}
               <button
-                className="lg:hidden flex items-center justify-center size-10 rounded-full bg-white border border-gray-200 text-[#0d0d1b] hover:bg-gray-50 transition-colors"
+                className="lg:hidden flex size-9 items-center justify-center rounded-full border border-gray-200 bg-white text-[#0d0d1b] transition-colors hover:bg-gray-50 sm:size-10"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 aria-label="Toggle menu"
               >
                 <FontAwesomeIcon
                   icon={isMobileMenuOpen ? faTimes : faBars}
-                  className="text-xl"
+                  className="text-lg sm:text-xl"
                 />
               </button>
             </div>

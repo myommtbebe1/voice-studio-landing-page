@@ -111,7 +111,11 @@
       "similarityBoost": "Similarity Boost",
       "noVoicesFound": "No voices found",
       "playPreview": "Play Preview",
-      "pausePreview": "Pause Preview"
+      "pausePreview": "Pause Preview",
+      "marketplaceV1": "Marketplace v1",
+      "marketplaceV2": "Marketplace v2",
+      "filters": "Filters",
+      "clearFilters": "Clear all"
     },
     "editor": {
       "saving": "Saving...",
@@ -124,8 +128,7 @@
       "premium": "Premium",
       "premiumQuota": "Premium Quota",
       "times": "times",
-      "generate": "Generate",
-      "selectVoice": "Select voice"
+      "generate": "Generate"
     },
     "rightSidebar": {
       "outputDeck": "OUTPUT DECK",
@@ -150,7 +153,8 @@
     "voicestudio": {
       "newsAnchor": "News Anchor",
       "generatedJustNow": "Generated Just Now",
-      "addSentence": "Add New Sentence"
+      "addSentence": "Add New Sentence",
+      "generateFailed": "Generate failed"
     }
   },
   "voiceover": {

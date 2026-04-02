@@ -4,8 +4,7 @@ import { useDataCache } from "./useDataCache.js";
 import { getAllSpeakers } from "../firebase/voiceApi.js";
 import { getUserBotnoiToken } from "../utils/botnoiToken.js";
 
-/** Bumped when marketplace fetch semantics change (avoids stale empty sessionStorage). */
-const ALL_SPEAKERS_CACHE_KEY = "speakers:all:v2";
+const ALL_SPEAKERS_CACHE_KEY = "speakers:all";
 const ALL_SPEAKERS_TTL_MS = 15 * 60 * 1000;
 
 /**

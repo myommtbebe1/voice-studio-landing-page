@@ -5,22 +5,17 @@ import { useLanguage } from "../../hooks/useLanguage.js";
 import { shouldIgnorePlayAbortError } from "../../utils/audioPlayErrors.js";
 import { getSpeakerPlayKey } from "../../utils/speakerPlayKey.js";
 import {
-  VOICE_FILTER_LANGUAGE_MAP,
-  VOICE_STYLE_OPTIONS,
-  VOICE_CATEGORY_OPTIONS,
-  VOICE_GENDER_AGE_OPTIONS,
-  VOICE_VERSION_OPTIONS,
-  getActionButtons,
-  getDescriptor,
-  filterSpeakersByCriteria,
-} from "../../utils/voiceSpeakerFilters.js";
+  VOICE_FILTER_LANGUAGE_MAP as languageMap,
+  VOICE_FILTER_STYLE_OPTIONS as styleOptions,
+  VOICE_FILTER_CATEGORY_OPTIONS as categoryOptions,
+  VOICE_FILTER_GENDER_AGE_OPTIONS as genderAgeOptions,
+  VOICE_FILTER_VERSION_OPTIONS as versionOptions,
+  getSpeakerActionCategories as getActionButtons,
+  getSpeakerDescriptor as getDescriptor,
+  speakerMatchesMarketplaceFilters,
+} from "../../utils/voiceMarketplaceFilters.js";
 
-export default function VoiceCardsGrid({
-  speakers,
-  loading,
-  botnoiToken,
-  speakersError = null,
-}) {
+export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
   
   const [playingId, setPlayingId] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
@@ -46,8 +41,6 @@ export default function VoiceCardsGrid({
   const cardsGridRef = useRef(null);
 
   const cardsPerPage = 15; // 3 columns x 5 rows
-
-  const languageMap = VOICE_FILTER_LANGUAGE_MAP;
 
   // Color palette for card backgrounds
   const cardColors = [
@@ -126,7 +119,7 @@ export default function VoiceCardsGrid({
   };
 
   const filteredSpeakers = useMemo(() => {
-    return filterSpeakersByCriteria(speakers, {
+    const criteria = {
       upperFilter,
       searchQuery,
       selectedLanguages,
@@ -134,7 +127,8 @@ export default function VoiceCardsGrid({
       selectedCategories,
       selectedGenderAge,
       selectedVersions,
-    });
+    };
+    return speakers.filter((speaker) => speakerMatchesMarketplaceFilters(speaker, criteria));
   }, [
     speakers,
     upperFilter,
@@ -274,16 +268,16 @@ export default function VoiceCardsGrid({
         setSelectedLanguages(selectedLanguages.length === allLangs.length ? [] : allLangs);
         break;
       case 'style':
-        setSelectedStyles(selectedStyles.length === VOICE_STYLE_OPTIONS.length ? [] : [...VOICE_STYLE_OPTIONS]);
+        setSelectedStyles(selectedStyles.length === styleOptions.length ? [] : [...styleOptions]);
         break;
       case 'category':
-        setSelectedCategories(selectedCategories.length === VOICE_CATEGORY_OPTIONS.length ? [] : [...VOICE_CATEGORY_OPTIONS]);
+        setSelectedCategories(selectedCategories.length === categoryOptions.length ? [] : [...categoryOptions]);
         break;
       case 'genderAge':
-        setSelectedGenderAge(selectedGenderAge.length === VOICE_GENDER_AGE_OPTIONS.length ? [] : [...VOICE_GENDER_AGE_OPTIONS]);
+        setSelectedGenderAge(selectedGenderAge.length === genderAgeOptions.length ? [] : [...genderAgeOptions]);
         break;
       case 'version':
-        setSelectedVersions(selectedVersions.length === VOICE_VERSION_OPTIONS.length ? [] : [...VOICE_VERSION_OPTIONS]);
+        setSelectedVersions(selectedVersions.length === versionOptions.length ? [] : [...versionOptions]);
         break;
     }
   };
@@ -293,15 +287,6 @@ export default function VoiceCardsGrid({
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('voiceover.allVoices')}</h2>
-
-      {speakersError && !loading && (
-        <div
-          className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-800"
-          role="alert"
-        >
-          {speakersError}
-        </div>
-      )}
       
       {/* Upper Filters: All, Premium, New, Free */}
       <div className="flex gap-4 mb-6 border-b border-gray-200">
@@ -421,7 +406,7 @@ export default function VoiceCardsGrid({
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {VOICE_STYLE_OPTIONS.map((style) => (
+                  {styleOptions.map((style) => (
                     <button
                       key={style}
                       onClick={() => toggleFilter('style', style)}
@@ -465,7 +450,7 @@ export default function VoiceCardsGrid({
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {VOICE_CATEGORY_OPTIONS.map((category) => (
+                  {categoryOptions.map((category) => (
                     <button
                       key={category}
                       onClick={() => toggleFilter('category', category)}
@@ -509,7 +494,7 @@ export default function VoiceCardsGrid({
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {VOICE_GENDER_AGE_OPTIONS.map((option) => (
+                  {genderAgeOptions.map((option) => (
                     <button
                       key={option}
                       onClick={() => toggleFilter('genderAge', option)}
@@ -553,7 +538,7 @@ export default function VoiceCardsGrid({
                   </button>
                 </div>
                 <div className="space-y-1">
-                  {VOICE_VERSION_OPTIONS.map((version) => (
+                  {versionOptions.map((version) => (
                     <button
                       key={version}
                       onClick={() => toggleFilter('version', version)}
@@ -828,13 +813,13 @@ export default function VoiceCardsGrid({
         </div>
       )}
 
-      {filteredSpeakers.length === 0 && !loading && speakers.length > 0 && (
+      {filteredSpeakers.length === 0 && !loading && (
         <div className="text-center text-gray-500 py-12">
           <p>{t('voiceover.noVoicesMatching')}</p>
         </div>
       )}
 
-      {speakers.length === 0 && !loading && !speakersError && (
+      {speakers.length === 0 && !loading && (
         <div className="text-center text-gray-500 py-12">
           <p>{t('voiceover.noVoicesAvailable')}</p>
         </div>

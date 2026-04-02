@@ -1,4 +1,5 @@
-/** Labels for language filter dropdowns (Voice Over + Voice Studio sidebar). */
+/** Shared Voice Over / Voice Studio marketplace filter logic (single source of truth). */
+
 export const VOICE_FILTER_LANGUAGE_MAP = {
   en: { name: "English", flag: "🇬🇧" },
   id: { name: "Indonesian", flag: "🇮🇩" },
@@ -25,7 +26,7 @@ export const VOICE_FILTER_LANGUAGE_MAP = {
   it: { name: "Italian", flag: "🇮🇹" },
 };
 
-export const VOICE_STYLE_OPTIONS = [
+export const VOICE_FILTER_STYLE_OPTIONS = [
   "Confident",
   "Trustworthy",
   "Exciting",
@@ -47,7 +48,7 @@ export const VOICE_STYLE_OPTIONS = [
   "Mellow",
 ];
 
-export const VOICE_CATEGORY_OPTIONS = [
+export const VOICE_FILTER_CATEGORY_OPTIONS = [
   "Storytelling",
   "Narrating",
   "News Reading",
@@ -58,11 +59,11 @@ export const VOICE_CATEGORY_OPTIONS = [
   "Free",
 ];
 
-export const VOICE_GENDER_AGE_OPTIONS = ["Female", "Male", "Adult", "Teens", "Child"];
+export const VOICE_FILTER_GENDER_AGE_OPTIONS = ["Female", "Male", "Adult", "Teens", "Child"];
 
-export const VOICE_VERSION_OPTIONS = ["V1", "V2"];
+export const VOICE_FILTER_VERSION_OPTIONS = ["V1", "V2"];
 
-export function getActionButtons(speaker) {
+export function getSpeakerActionCategories(speaker) {
   const buttons = [];
 
   const speechStyles = speaker.eng_speech_style || speaker.speech_style || [];
@@ -162,7 +163,7 @@ export function getActionButtons(speaker) {
   return uniqueButtons;
 }
 
-export function getDescriptor(speaker) {
+export function getSpeakerDescriptor(speaker) {
   let gender = speaker.eng_gender || speaker.gender || "";
   let age = speaker.eng_age_style || speaker.age_style || "";
 
@@ -173,9 +174,17 @@ export function getDescriptor(speaker) {
     } else if (genderLower.startsWith("an ")) {
       gender = genderLower.substring(3);
     }
-    if (genderLower.includes("girl") || genderLower.includes("female") || genderLower === "woman") {
+    if (
+      genderLower.includes("girl") ||
+      genderLower.includes("female") ||
+      genderLower === "woman"
+    ) {
       gender = "female";
-    } else if (genderLower.includes("boy") || genderLower.includes("male") || genderLower === "man") {
+    } else if (
+      genderLower.includes("boy") ||
+      genderLower.includes("male") ||
+      genderLower === "man"
+    ) {
       gender = "male";
     } else {
       gender = gender.toLowerCase();
@@ -198,27 +207,24 @@ export function getDescriptor(speaker) {
   if (gender && age) {
     return `${gender}/${age}`;
   }
-  if (gender) {
-    return gender;
-  }
-  if (age) {
-    return age;
-  }
+  if (gender) return gender;
+  if (age) return age;
   return "";
 }
 
 /**
- * @param {object} speaker - marketplace speaker row
+ * @param {object} speaker - raw marketplace speaker
  * @param {object} criteria
- * @param {'all'|'premium'|'new'|'free'} [criteria.upperFilter='all']
+ * @param {string} [criteria.upperFilter] - 'all' | 'premium' | 'new' | 'free'
  * @param {string} [criteria.searchQuery]
  * @param {string[]} [criteria.selectedLanguages]
  * @param {string[]} [criteria.selectedStyles]
  * @param {string[]} [criteria.selectedCategories]
  * @param {string[]} [criteria.selectedGenderAge]
  * @param {string[]} [criteria.selectedVersions]
+ * @param {string} [extraSearchText] - e.g. sidebar row name + tagline (optional)
  */
-export function matchesVoiceFilterCriteria(speaker, criteria) {
+export function speakerMatchesMarketplaceFilters(speaker, criteria, extraSearchText = "") {
   const {
     upperFilter = "all",
     searchQuery = "",
@@ -246,13 +252,11 @@ export function matchesVoiceFilterCriteria(speaker, criteria) {
   }
 
   if (searchQuery && String(searchQuery).trim()) {
-    const query = String(searchQuery).toLowerCase().trim();
+    const query = String(searchQuery).toLowerCase();
     const name = (speaker.eng_name || speaker.thai_name || "").toLowerCase();
     const speakerId = speaker.speaker_id?.toString().toLowerCase() || "";
-    const tag = String(
-      speaker.eng_voice_style?.[0] || speaker.voice_style?.[0] || ""
-    ).toLowerCase();
-    if (!name.includes(query) && !speakerId.includes(query) && !tag.includes(query)) {
+    const extra = (extraSearchText || "").toLowerCase();
+    if (!name.includes(query) && !speakerId.includes(query) && !extra.includes(query)) {
       return false;
     }
   }
@@ -265,23 +269,27 @@ export function matchesVoiceFilterCriteria(speaker, criteria) {
   }
 
   if (selectedCategories.length > 0) {
-    const categories = getActionButtons(speaker).map((btn) => btn.text);
+    const categories = getSpeakerActionCategories(speaker).map((btn) => btn.text);
     if (!selectedCategories.some((cat) => categories.includes(cat))) {
       return false;
     }
   }
 
   if (selectedGenderAge.length > 0) {
-    const descriptor = getDescriptor(speaker).toLowerCase();
+    const descriptor = getSpeakerDescriptor(speaker).toLowerCase();
     const gender = speaker.eng_gender || speaker.gender || "";
     const age = speaker.eng_age_style || speaker.age_style || "";
     const genderLower = (gender || "").toString().toLowerCase().trim();
     const ageLower = (age || "").toString().toLowerCase();
 
     const isFemale =
-      genderLower.includes("female") || genderLower.includes("girl") || genderLower.includes("woman");
+      genderLower.includes("female") ||
+      genderLower.includes("girl") ||
+      genderLower.includes("woman");
     const isMale =
-      (genderLower.includes("male") || genderLower.includes("boy") || genderLower.includes("man")) &&
+      (genderLower.includes("male") ||
+        genderLower.includes("boy") ||
+        genderLower.includes("man")) &&
       !genderLower.includes("female");
     const isAdult = ageLower.includes("adult") || descriptor.includes("adult");
     const isTeens = ageLower.includes("teen") || descriptor.includes("teen");
@@ -303,7 +311,7 @@ export function matchesVoiceFilterCriteria(speaker, criteria) {
     const wantsV2 = selectedVersions.includes("V2");
 
     if (wantsV1 && wantsV2) {
-      // show all
+      /* show all */
     } else if (wantsV1 && isV2) {
       return false;
     } else if (wantsV2 && !isV2) {
@@ -333,9 +341,4 @@ export function matchesVoiceFilterCriteria(speaker, criteria) {
   }
 
   return true;
-}
-
-export function filterSpeakersByCriteria(speakers, criteria) {
-  if (!Array.isArray(speakers)) return [];
-  return speakers.filter((s) => matchesVoiceFilterCriteria(s, criteria));
 }
