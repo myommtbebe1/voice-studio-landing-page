@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "../../../hooks/useLanguage.js";
+import { getWorkspaceDisplayName } from "../../../utils/workspaceDisplayName.js";
 
 export default function Workspace({ 
   currentProject = null,
@@ -13,6 +14,8 @@ export default function Workspace({
   const { t } = useLanguage();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  const displayName = (name) => getWorkspaceDisplayName(name, t);
 
   // Default project if none provided
   const defaultProject = currentProject || {
@@ -71,8 +74,8 @@ export default function Workspace({
         >
           <span className="truncate">
             {defaultProject.isLoading 
-              ? `${defaultProject.name} (${t("workspace.loading") || "Loading"})`
-              : defaultProject.name
+              ? `${displayName(defaultProject.name)} (${t("workspace.loading") || "Loading"})`
+              : displayName(defaultProject.name)
             }
           </span>
           <span className={`material-icons-round text-xs text-slate-400 ml-2 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>
@@ -114,8 +117,8 @@ export default function Workspace({
               </span>
               <span className="text-sm text-slate-700">
                 {defaultProject.isLoading 
-                  ? `${defaultProject.name} (${t("workspace.loading") || "Loading"})`
-                  : defaultProject.name
+                  ? `${displayName(defaultProject.name)} (${t("workspace.loading") || "Loading"})`
+                  : displayName(defaultProject.name)
                 }
               </span>
             </div>
@@ -136,8 +139,8 @@ export default function Workspace({
                     </span>
                     <span className="truncate">
                       {project.isLoading 
-                        ? `${project.name} (${t("workspace.loading") || "Loading"})`
-                        : project.name
+                        ? `${displayName(project.name)} (${t("workspace.loading") || "Loading"})`
+                        : displayName(project.name)
                       }
                     </span>
                   </button>

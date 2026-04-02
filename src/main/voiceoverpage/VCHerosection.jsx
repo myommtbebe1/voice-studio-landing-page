@@ -3,8 +3,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faSquare, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import {  generateVoice } from "../../firebase/voiceApi.js";
 import { useLanguage } from "../../hooks/useLanguage.js";
+import { shouldIgnorePlayAbortError } from "../../utils/audioPlayErrors.js";
+import { getSpeakerPlayKey } from "../../utils/speakerPlayKey.js";
 
-export default function VCHerosection({ speakers, loading, botnoiToken }) {
+export default function VCHerosection({
+  speakers,
+  loading,
+  botnoiToken,
+  speakersError = null,
+}) {
   const [playingId, setPlayingId] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
 
@@ -26,10 +33,10 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
   };
 
   const handlePlayVoice = async (speaker) => {
-    const speakerId = speaker.speaker_id;
+    const playKey = getSpeakerPlayKey(speaker);
 
     // If already playing this speaker, stop it
-    if (playingId === speakerId) {
+    if (playingId === playKey) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -52,7 +59,7 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
         audioRef.current = audio;
 
         audio.onplay = () => {
-          setPlayingId(speakerId);
+          setPlayingId(playKey);
           setGeneratingId(null);
         };
         audio.onended = () => {
@@ -71,7 +78,7 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
         return;
       }
 
-      setGeneratingId(speakerId);
+      setGeneratingId(playKey);
 
       // Check if we have a token from parent (required only for generate_voice fallback)
       if (!botnoiToken) {
@@ -127,7 +134,7 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
 
       // Handle audio events
       audio.onplay = () => {
-        setPlayingId(speakerId);
+        setPlayingId(playKey);
         setGeneratingId(null);
       };
 
@@ -148,7 +155,12 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
       await audio.play();
 
     } catch (error) {
-      console.error('Failed to generate voice:', error);
+      if (shouldIgnorePlayAbortError(error)) {
+        setGeneratingId(null);
+        setPlayingId(null);
+        return;
+      }
+      console.error("Failed to generate or play voice:", error);
       setGeneratingId(null);
       setPlayingId(null);
       alert(`Failed to generate voice: ${error.message}`);
@@ -159,6 +171,11 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
 
   return (
     <div className="relative w-full overflow-hidden z-0">
+      {speakersError && !loading && (
+        <div className="mx-4 mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-800 sm:mx-8 lg:mx-[56px]">
+          {speakersError}
+        </div>
+      )}
       <div className="relative flex flex-col lg:flex-row items-center justify-start w-full min-h-[540px]">
         <div className="flex-1 max-w-2xl w-full flex justify-center lg:justify-start items-center px-4 sm:px-8 lg:px-[56px] pt-10 lg:pt-[20px] pb-8 lg:pb-[36px]">
           <div className="text-center lg:text-left">
@@ -193,7 +210,9 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
                 ))}
               </div>
             ) : (
-              speakers.slice(0, 3).map((speaker, index) => (
+              speakers.slice(0, 3).map((speaker, index) => {
+                const playKey = getSpeakerPlayKey(speaker);
+                return (
                 <div
                   key={speaker.speaker_id ? `${speaker.speaker_id}_${speaker.isV2 ? 'v2' : 'v1'}` : index}
                   className={`relative group ${index === 2 ? 'hidden sm:block' : ''}`}
@@ -230,11 +249,11 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
                          transition-all duration-300
                          disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     onClick={() => handlePlayVoice(speaker)}
-                    disabled={generatingId === speaker.speaker_id}
+                    disabled={generatingId === playKey}
                   >
-                    {generatingId === speaker.speaker_id ? (
+                    {generatingId === playKey ? (
                       <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" />
-                    ) : playingId === speaker.speaker_id ? (
+                    ) : playingId === playKey ? (
                       <FontAwesomeIcon icon={faSquare} className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     ) : (
                       <FontAwesomeIcon icon={faPlay} className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-1" />
@@ -249,7 +268,8 @@ export default function VCHerosection({ speakers, loading, botnoiToken }) {
                     </div>
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

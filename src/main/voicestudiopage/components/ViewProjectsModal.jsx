@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLanguage } from "../../../hooks/useLanguage.js";
+import { getWorkspaceDisplayName } from "../../../utils/workspaceDisplayName.js";
 
 export default function ViewProjectsModal({
   isOpen,
@@ -12,6 +13,7 @@ export default function ViewProjectsModal({
 }) {
   const { t } = useLanguage();
   const [deletingId, setDeletingId] = useState(null);
+  const displayName = (name) => getWorkspaceDisplayName(name, t);
 
   if (!isOpen) return null;
 
@@ -39,7 +41,7 @@ export default function ViewProjectsModal({
       );
       if (!ok) return;
     } else {
-      const ok = window.confirm(`Delete project "${project.name}"?`);
+      const ok = window.confirm(`Delete project "${displayName(project.name)}"?`);
       if (!ok) return;
     }
 
@@ -127,7 +129,7 @@ export default function ViewProjectsModal({
                               isCurrent ? "text-blue-700" : "text-slate-800"
                             }`}
                           >
-                            {project.name}
+                            {displayName(project.name)}
                           </span>
 
                           {isCurrent && (

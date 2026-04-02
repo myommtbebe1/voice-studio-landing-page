@@ -2,9 +2,25 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlay, faSquare, faSpinner, faChevronLeft, faChevronRight, faChevronDown, faSearch, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useLanguage } from "../../hooks/useLanguage.js";
+import { shouldIgnorePlayAbortError } from "../../utils/audioPlayErrors.js";
+import { getSpeakerPlayKey } from "../../utils/speakerPlayKey.js";
+import {
+  VOICE_FILTER_LANGUAGE_MAP,
+  VOICE_STYLE_OPTIONS,
+  VOICE_CATEGORY_OPTIONS,
+  VOICE_GENDER_AGE_OPTIONS,
+  VOICE_VERSION_OPTIONS,
+  getActionButtons,
+  getDescriptor,
+  filterSpeakersByCriteria,
+} from "../../utils/voiceSpeakerFilters.js";
 
-
-export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
+export default function VoiceCardsGrid({
+  speakers,
+  loading,
+  botnoiToken,
+  speakersError = null,
+}) {
   
   const [playingId, setPlayingId] = useState(null);
   const [generatingId, setGeneratingId] = useState(null);
@@ -31,49 +47,7 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
 
   const cardsPerPage = 15; // 3 columns x 5 rows
 
-  // Language code to name mapping
-  const languageMap = {
-    'en': { name: 'English', flag: '🇬🇧' },
-    'id': { name: 'Indonesian', flag: '🇮🇩' },
-    'ja': { name: 'Japanese', flag: '🇯🇵' },
-    'lo': { name: 'Lao', flag: '🇱🇦' },
-    'my': { name: 'Burmese', flag: '🇲🇲' },
-    'th': { name: 'Thai', flag: '🇹🇭' },
-    'vi': { name: 'Vietnamese', flag: '🇻🇳' },
-    'zh': { name: 'Chinese', flag: '🇨🇳' },
-    'km': { name: 'Cambodia', flag: '🇰🇭' },
-    'ph': { name: 'Filipino', flag: '🇵🇭' },
-    'ar': { name: 'Arabic', flag: '🇸🇦' },
-    'de': { name: 'German', flag: '🇩🇪' },
-    'es': { name: 'Spanish', flag: '🇪🇸' },
-    'fr': { name: 'French', flag: '🇫🇷' },
-    'ms': { name: 'Malaysian', flag: '🇲🇾' },
-    'pt': { name: 'Portuguese', flag: '🇵🇹' },
-    'ru': { name: 'Russian', flag: '🇷🇺' },
-    'nl': { name: 'Dutch', flag: '🇳🇱' },
-    'ko': { name: 'Korean', flag: '🇰🇷' },
-    'hi': { name: 'Hindi', flag: '🇮🇳' },
-    'sg': { name: 'Singapore', flag: '🇸🇬' },
-    'tr': { name: 'Turkish', flag: '🇹🇷' },
-    'it': { name: 'Italian', flag: '🇮🇹' },
-  };
-
-  // Available filter options
-  const styleOptions = [
-    'Confident', 'Trustworthy', 'Exciting', 'Cute', 'Serious', 'Sweet', 
-    'Warm', 'Soothing', 'Gentle', 'Calm', 'Southern accent', 'Clear', 
-    'Playful', 'Regional accent', 'Deep', 'Gentle and tender', 
-    'Northeastern accent', 'Northern accent', 'Mellow'
-  ];
-
-  const categoryOptions = [
-    'Storytelling', 'Narrating', 'News Reading', 'Documentary', 
-    'Anime', 'Teaching', 'Local', 'Free'
-  ];
-
-  const genderAgeOptions = ['Female', 'Male', 'Adult', 'Teens', 'Child'];
-
-  const versionOptions = ['V1', 'V2'];
+  const languageMap = VOICE_FILTER_LANGUAGE_MAP;
 
   // Color palette for card backgrounds
   const cardColors = [
@@ -90,10 +64,10 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
 
 
   const handlePlayVoice = async (speaker) => {
-    const speakerId = speaker.speaker_id;
-    
+    const playKey = getSpeakerPlayKey(speaker);
+
     // If already playing this speaker, stop it
-    if (playingId === speakerId) {
+    if (playingId === playKey) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -117,12 +91,12 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
     }
 
     try {
-      setGeneratingId(speakerId);
+      setGeneratingId(playKey);
       const audio = new Audio(defaultClipUrl);
       audioRef.current = audio;
 
       audio.onplay = () => {
-        setPlayingId(speakerId);
+        setPlayingId(playKey);
         setGeneratingId(null);
       };
       audio.onended = () => {
@@ -139,275 +113,38 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
 
       await audio.play();
     } catch (error) {
-      console.error('Failed to play preview:', error);
+      if (shouldIgnorePlayAbortError(error)) {
+        setGeneratingId(null);
+        setPlayingId(null);
+        return;
+      }
+      console.error("Failed to play preview:", error);
       setGeneratingId(null);
       setPlayingId(null);
       alert(`Failed to play audio: ${error.message}`);
     }
   };
 
-  // Get action buttons/categories based on speech_style from API
-  const getActionButtons = (speaker) => {
-    const buttons = [];
-    
-    // Get speech styles directly from API (primary source)
-    const speechStyles = speaker.eng_speech_style || speaker.speech_style || [];
-    const allSpeechStyles = Array.isArray(speechStyles) ? speechStyles : [speechStyles].filter(Boolean);
-    
-    // Category mapping with colors - map API values to display names
-    const categoryMap = {
-      'Storytelling': { color: 'bg-green-500' },
-      'News Reading': { color: 'bg-blue-500' },
-      'Character': { color: 'bg-blue-400' },
-      'Narrating': { color: 'bg-red-500' },
-      'Advertising Spot': { color: 'bg-orange-500' },
-      'Documentary': { color: 'bg-yellow-500' },
-      'Anime': { color: 'bg-purple-500' },
-      'Teaching': { color: 'bg-indigo-500' },
-      'Local': { color: 'bg-teal-500' },
-      'Foreign Voice': { color: 'bg-pink-500' },
-      'Free': { color: 'bg-gray-500' },
-    };
-    
-    // Check for Narrating/Character combination
-    const hasNarrating = allSpeechStyles.some(s => 
-      s?.toLowerCase().includes('narrat') || s?.toLowerCase().includes('narrating')
-    );
-    const hasCharacter = allSpeechStyles.some(s => 
-      s?.toLowerCase().includes('character') || s?.toLowerCase().includes('char')
-    );
-    
-    if (hasNarrating && hasCharacter) {
-      buttons.push({ text: 'Narrating,Character', color: 'bg-red-400' });
-    }
-    
-    // Map speech styles directly to categories
-    allSpeechStyles.forEach(style => {
-      if (!style) return;
-      
-      const styleLower = style.toLowerCase().trim();
-      let categoryName = null;
-      
-      // Direct mapping from API values
-      if (styleLower.includes('storytelling') || styleLower.includes('story')) {
-        categoryName = 'Storytelling';
-      } else if (styleLower.includes('news reading') || styleLower.includes('news') || styleLower.includes('read')) {
-        categoryName = 'News Reading';
-      } else if (styleLower.includes('character') || styleLower.includes('char')) {
-        categoryName = 'Character';
-      } else if (styleLower.includes('narrating') || styleLower.includes('narrat')) {
-        categoryName = 'Narrating';
-      } else if (styleLower.includes('advertising') || styleLower.includes('ad') || styleLower.includes('spot')) {
-        categoryName = 'Advertising Spot';
-      } else if (styleLower.includes('documentary') || styleLower.includes('doc')) {
-        categoryName = 'Documentary';
-      } else if (styleLower.includes('anime') || styleLower.includes('animation')) {
-        categoryName = 'Anime';
-      } else if (styleLower.includes('teaching') || styleLower.includes('teach') || styleLower.includes('education')) {
-        categoryName = 'Teaching';
-      } else if (styleLower.includes('local') || styleLower.includes('native')) {
-        categoryName = 'Local';
-      } else if (styleLower.includes('foreign') || styleLower.includes('international')) {
-        categoryName = 'Foreign Voice';
-      } else if (styleLower.includes('free')) {
-        categoryName = 'Free';
-      }
-      
-      // Add category if found and not already added (skip if Narrating,Character was added)
-      if (categoryName && categoryMap[categoryName]) {
-        // Skip individual Narrating/Character if we already have the combination
-        if (categoryName === 'Narrating' && hasNarrating && hasCharacter) return;
-        if (categoryName === 'Character' && hasNarrating && hasCharacter) return;
-        
-        buttons.push({ 
-          text: categoryName, 
-          color: categoryMap[categoryName].color 
-        });
-      }
-    });
-    
-    // If no categories found, add Storytelling as default
-    if (buttons.length === 0) {
-      buttons.push({ text: 'Storytelling', color: 'bg-green-500' });
-    }
-    
-    // Remove duplicates
-    const uniqueButtons = [];
-    const seen = new Set();
-    buttons.forEach(btn => {
-      if (!seen.has(btn.text)) {
-        seen.add(btn.text);
-        uniqueButtons.push(btn);
-      }
-    });
-    
-    return uniqueButtons; // Return all matching categories
-  };
-
-  // Get descriptor text (gender/age) - format as "female/teen"
-  const getDescriptor = (speaker) => {
-    let gender = speaker.eng_gender || speaker.gender || '';
-    let age = speaker.eng_age_style || speaker.age_style || '';
-    
-    // Normalize gender format - remove articles and convert to lowercase format
-    if (gender) {
-      const genderLower = gender.toLowerCase().trim();
-      // Remove articles like "a ", "an "
-      if (genderLower.startsWith('a ')) {
-        gender = genderLower.substring(2);
-      } else if (genderLower.startsWith('an ')) {
-        gender = genderLower.substring(3);
-      }
-      // Convert to simple format: "girl" -> "female", "boy" -> "male", etc.
-      if (genderLower.includes('girl') || genderLower.includes('female') || genderLower === 'woman') {
-        gender = 'female';
-      } else if (genderLower.includes('boy') || genderLower.includes('male') || genderLower === 'man') {
-        gender = 'male';
-      } else {
-        gender = gender.toLowerCase();
-      }
-    }
-    
-    // Normalize age format - shorten to "teen", "adult", "childhood", "child"
-    if (age) {
-      const ageLower = age.toLowerCase().trim();
-      if (ageLower.includes('teen')) {
-        age = 'teen';
-      } else if (ageLower.includes('adult')) {
-        age = 'adult';
-      } else if (ageLower.includes('child')) {
-        age = 'child';
-      } else {
-        age = ageLower;
-      }
-    }
-    
-    if (gender && age) {
-      return `${gender}/${age}`;
-    } else if (gender) {
-      return gender;
-    } else if (age) {
-      return age;
-    }
-    return '';
-  };
-
-  // Filter speakers based on all filter criteria
   const filteredSpeakers = useMemo(() => {
-    return speakers.filter(speaker => {
-      // Upper filter (all, premium, new, free)
-      if (upperFilter !== 'all') {
-        if (upperFilter === 'premium') {
-          // Premium tab = Pro voices only: API tier="pro" OR from V2 API (pro/premium cards come from V2)
-          const tierPro = speaker.tier && String(speaker.tier).toLowerCase() === 'pro';
-          const fromV2Api = speaker.isV2 === true;
-          const isPremium = tierPro || fromV2Api;
-          if (!isPremium) {
-            return false;
-          }
-        } else if (upperFilter === 'new') {
-          // New tab = only voices with "popularity": "new" in API (others have "popularity": "-")
-          const popularityNew = speaker.popularity && String(speaker.popularity).toLowerCase() === 'new';
-          if (!popularityNew) {
-            return false;
-          }
-        } else if (upperFilter === 'free') {
-          // Free tab = Basic voices only: API tier="basic" OR from V1 API (basic/free cards come from V1)
-          const tierBasic = speaker.tier && String(speaker.tier).toLowerCase() === 'basic';
-          const fromV1Api = speaker.isV2 === false;
-          const isFree = tierBasic || fromV1Api;
-          if (!isFree) {
-            return false;
-          }
-        }
-      }
-
-      // Search query
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const name = (speaker.eng_name || speaker.thai_name || '').toLowerCase();
-        const speakerId = speaker.speaker_id?.toString().toLowerCase() || '';
-        if (!name.includes(query) && !speakerId.includes(query)) {
-          return false;
-        }
-      }
-
-      // Language filter
-      if (selectedLanguages.length > 0) {
-        const speakerLangs = speaker.available_language || [];
-        if (!selectedLanguages.some(lang => speakerLangs.includes(lang))) {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (selectedCategories.length > 0) {
-        const categories = getActionButtons(speaker).map(btn => btn.text);
-        if (!selectedCategories.some(cat => categories.includes(cat))) {
-          return false;
-        }
-      }
-
-      // Gender/Age filter - speaker must match ALL selected options (e.g. Male AND Adult)
-      if (selectedGenderAge.length > 0) {
-        const descriptor = getDescriptor(speaker).toLowerCase();
-        const gender = speaker.eng_gender || speaker.gender || '';
-        const age = speaker.eng_age_style || speaker.age_style || '';
-        const genderLower = (gender || '').toString().toLowerCase().trim();
-        const ageLower = (age || '').toString().toLowerCase();
-        
-        const isFemale = genderLower.includes('female') || genderLower.includes('girl') || genderLower.includes('woman');
-        const isMale = (genderLower.includes('male') || genderLower.includes('boy') || genderLower.includes('man')) && !genderLower.includes('female');
-        const isAdult = ageLower.includes('adult') || descriptor.includes('adult');
-        const isTeens = ageLower.includes('teen') || descriptor.includes('teen');
-        const isChild = ageLower.includes('child') || descriptor.includes('child');
-        
-        for (const filter of selectedGenderAge) {
-          const filterLower = filter.toLowerCase();
-          if (filterLower === 'female' && !isFemale) return false;
-          if (filterLower === 'male' && !isMale) return false;
-          if (filterLower === 'adult' && !isAdult) return false;
-          if (filterLower === 'teens' && !isTeens) return false;
-          if (filterLower === 'child' && !isChild) return false;
-        }
-      }
-
-      // Version filter
-      if (selectedVersions.length > 0) {
-        const isV2 = speaker.isV2 || false;
-        const wantsV1 = selectedVersions.includes('V1');
-        const wantsV2 = selectedVersions.includes('V2');
-        
-        if (wantsV1 && wantsV2) {
-          // Both selected, show all
-        } else if (wantsV1 && isV2) {
-          return false; // Want V1 but speaker is V2
-        } else if (wantsV2 && !isV2) {
-          return false; // Want V2 but speaker is V1
-        } else if (!wantsV1 && !wantsV2) {
-          return false; // Neither selected (shouldn't happen, but safety check)
-        }
-      }
-
-      // Style filter - check voice style
-      if (selectedStyles.length > 0) {
-        const voiceStyles = speaker.eng_voice_style || speaker.voice_style || [];
-        const allStyles = Array.isArray(voiceStyles) ? voiceStyles : [voiceStyles].filter(Boolean);
-        const styleStrings = allStyles.map(s => s?.toLowerCase() || '');
-        
-        let matches = false;
-        selectedStyles.forEach(selectedStyle => {
-          const selectedLower = selectedStyle.toLowerCase();
-          if (styleStrings.some(style => style.includes(selectedLower) || selectedLower.includes(style))) {
-            matches = true;
-          }
-        });
-        if (!matches) return false;
-      }
-
-      return true;
+    return filterSpeakersByCriteria(speakers, {
+      upperFilter,
+      searchQuery,
+      selectedLanguages,
+      selectedStyles,
+      selectedCategories,
+      selectedGenderAge,
+      selectedVersions,
     });
-  }, [speakers, upperFilter, searchQuery, selectedLanguages, selectedStyles, selectedCategories, selectedGenderAge, selectedVersions]);
+  }, [
+    speakers,
+    upperFilter,
+    searchQuery,
+    selectedLanguages,
+    selectedStyles,
+    selectedCategories,
+    selectedGenderAge,
+    selectedVersions,
+  ]);
 
   // Pagination calculations - use filtered speakers
   const totalPages = Math.ceil(filteredSpeakers.length / cardsPerPage);
@@ -537,16 +274,16 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
         setSelectedLanguages(selectedLanguages.length === allLangs.length ? [] : allLangs);
         break;
       case 'style':
-        setSelectedStyles(selectedStyles.length === styleOptions.length ? [] : [...styleOptions]);
+        setSelectedStyles(selectedStyles.length === VOICE_STYLE_OPTIONS.length ? [] : [...VOICE_STYLE_OPTIONS]);
         break;
       case 'category':
-        setSelectedCategories(selectedCategories.length === categoryOptions.length ? [] : [...categoryOptions]);
+        setSelectedCategories(selectedCategories.length === VOICE_CATEGORY_OPTIONS.length ? [] : [...VOICE_CATEGORY_OPTIONS]);
         break;
       case 'genderAge':
-        setSelectedGenderAge(selectedGenderAge.length === genderAgeOptions.length ? [] : [...genderAgeOptions]);
+        setSelectedGenderAge(selectedGenderAge.length === VOICE_GENDER_AGE_OPTIONS.length ? [] : [...VOICE_GENDER_AGE_OPTIONS]);
         break;
       case 'version':
-        setSelectedVersions(selectedVersions.length === versionOptions.length ? [] : [...versionOptions]);
+        setSelectedVersions(selectedVersions.length === VOICE_VERSION_OPTIONS.length ? [] : [...VOICE_VERSION_OPTIONS]);
         break;
     }
   };
@@ -556,6 +293,15 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">{t('voiceover.allVoices')}</h2>
+
+      {speakersError && !loading && (
+        <div
+          className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-800"
+          role="alert"
+        >
+          {speakersError}
+        </div>
+      )}
       
       {/* Upper Filters: All, Premium, New, Free */}
       <div className="flex gap-4 mb-6 border-b border-gray-200">
@@ -675,7 +421,7 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {styleOptions.map((style) => (
+                  {VOICE_STYLE_OPTIONS.map((style) => (
                     <button
                       key={style}
                       onClick={() => toggleFilter('style', style)}
@@ -719,7 +465,7 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {categoryOptions.map((category) => (
+                  {VOICE_CATEGORY_OPTIONS.map((category) => (
                     <button
                       key={category}
                       onClick={() => toggleFilter('category', category)}
@@ -763,7 +509,7 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-1.5">
-                  {genderAgeOptions.map((option) => (
+                  {VOICE_GENDER_AGE_OPTIONS.map((option) => (
                     <button
                       key={option}
                       onClick={() => toggleFilter('genderAge', option)}
@@ -807,7 +553,7 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
                   </button>
                 </div>
                 <div className="space-y-1">
-                  {versionOptions.map((version) => (
+                  {VOICE_VERSION_OPTIONS.map((version) => (
                     <button
                       key={version}
                       onClick={() => toggleFilter('version', version)}
@@ -846,8 +592,9 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
             </div>
           ))
         ) : currentSpeakers.map((speaker, index) => {
-          const isPlaying = playingId === speaker.speaker_id;
-          const isGenerating = generatingId === speaker.speaker_id;
+          const playKey = getSpeakerPlayKey(speaker);
+          const isPlaying = playingId === playKey;
+          const isGenerating = generatingId === playKey;
           const colorClass = cardColors[(startIndex + index) % cardColors.length];
           const actionButtons = getActionButtons(speaker);
           const descriptor = getDescriptor(speaker);
@@ -1081,13 +828,13 @@ export default function VoiceCardsGrid({ speakers, loading, botnoiToken }) {
         </div>
       )}
 
-      {filteredSpeakers.length === 0 && !loading && (
+      {filteredSpeakers.length === 0 && !loading && speakers.length > 0 && (
         <div className="text-center text-gray-500 py-12">
           <p>{t('voiceover.noVoicesMatching')}</p>
         </div>
       )}
 
-      {speakers.length === 0 && !loading && (
+      {speakers.length === 0 && !loading && !speakersError && (
         <div className="text-center text-gray-500 py-12">
           <p>{t('voiceover.noVoicesAvailable')}</p>
         </div>

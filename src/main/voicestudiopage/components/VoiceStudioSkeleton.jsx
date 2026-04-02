@@ -75,7 +75,7 @@ export default function VoiceStudioSkeleton() {
         </section>
 
         {/* Right column - Output Deck skeleton */}
-        <aside className="hidden lg:flex flex-col shrink-0 w-72 xl:w-72 2xl:w-80 bg-[#eef2ff] border-l border-indigo-100">
+        <aside className="hidden lg:flex flex-col shrink-0 w-72 bg-[#eef2ff] border-l border-indigo-100">
           <div className="px-3 lg:px-5 py-5">
             <div className="h-4 w-28 skeleton rounded" />
           </div>
