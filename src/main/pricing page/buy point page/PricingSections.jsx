@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+
+const CREDITS_ICON_URL = 'https://voice.botnoi.ai/assets/img/Credits.svg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { formatPriceDisplay } from '../formatPrice';
@@ -36,7 +38,7 @@ const SUBSCRIPTION_CARD_IMAGE_SRC = 'https://voice-staging.botnoi.ai/assets/paym
 // Company / Special Price banner (language-specific: company-en.webp, company-my.webp)
 const COMPANY_BANNER_BASE_URL = 'https://voice-staging.botnoi.ai/assets/payment/buy-points/company-';
 // Credits icon for point packages (reference: assets/img/Credits.svg)
-const CREDITS_IMG_SRC = 'https://voice-staging.botnoi.ai/assets/img/Credits.svg';
+const CREDITS_IMG_SRC = 'https://voice.botnoi.ai/assets/img/Credits.svg';
 // Hot Deal section gradient (red) — used for Hot Deal prices/timer area only
 const HOT_DEAL_GRADIENT = 'linear-gradient(to right, #dc2626, #b91c1c)';
 // Shared points display: number = #4D3A9C → #8C3A7A gradient, "Points" = solid #8C3A7A
@@ -354,7 +356,7 @@ function TierRow({ points, noAds, coins, originalPrice, currentPrice, timeLeft, 
   return (
     <div className="w-full bg-white rounded-xl shadow-md border border-gray-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div className="flex items-start gap-3 flex-1">
-        <div className="w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center shrink-0"><span className="text-white font-bold text-lg">P</span></div>
+        <div className="w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center shrink-0"><img src={CREDITS_ICON_URL} alt="Credits" className="w-6 h-6" /></div>
         <div>
           <p className="text-lg sm:text-xl font-bold text-gray-800">{typeof points === 'number' ? points.toLocaleString() : points} Points</p>
           <div className="flex flex-wrap gap-3 mt-1 text-sm text-gray-600">

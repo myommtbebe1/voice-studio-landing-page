@@ -34,21 +34,6 @@ function formatTime(totalSeconds) {
   return `${mm}:${ss}`;
 }
 
-/** Banner text for generate failures; log err for debugging. */
-function userFacingStudioGenerateError(err, t) {
-  const msg = String(err?.message || "");
-  if (msg.includes("401")) {
-    return "Authentication failed. Please try logging out and back in.";
-  }
-  if (msg.includes("403")) {
-    return "Access denied. Please check if your account has permission to generate voice, or if the selected speaker supports the chosen language.";
-  }
-  if (msg.includes("does not support")) {
-    return msg;
-  }
-  return t("voicestudio.voicestudio.generateFailed");
-}
-
 export default function Voicestudio() {
   const { t } = useLanguage();
   const { user } = useContext(AuthContext);
@@ -648,7 +633,19 @@ export default function Voicestudio() {
       audio.load();
     } catch (err) {
       console.error("Error generating voice:", err);
-      setError(userFacingStudioGenerateError(err, t));
+      
+      // Provide more helpful error messages
+      let errorMessage = err.message || "Failed to generate voice";
+      
+      if (err.message && err.message.includes('403')) {
+        errorMessage = "Access denied. Please check if your account has permission to generate voice, or if the selected speaker supports the chosen language.";
+      } else if (err.message && err.message.includes('401')) {
+        errorMessage = "Authentication failed. Please try logging out and back in.";
+      } else if (err.message && err.message.includes('does not support')) {
+        errorMessage = err.message; // Use the specific error message we created
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -855,7 +852,7 @@ export default function Voicestudio() {
       audio.load();
     } catch (err) {
       console.error("Error generating voice for block:", err);
-      setError(userFacingStudioGenerateError(err, t));
+      setError(err.message || "Failed to generate voice");
     } finally {
       setGeneratingBlockId(null);
     }
@@ -1132,11 +1129,11 @@ export default function Voicestudio() {
           <p>{successMessage}</p>
         </div>
       )}
-      <main className="flex flex-1 overflow-hidden relative">
-        {/* Mobile and tablet overlay for sidebars */}
+      <main className="relative flex min-h-0 flex-1 overflow-hidden">
+        {/* Drawer overlay until xl; persistent sidebars from xl breakpoint */}
         {(isLeftSidebarOpen || isRightSidebarOpen) && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/50 xl:hidden"
             onClick={() => {
               setIsLeftSidebarOpen(false);
               setIsRightSidebarOpen(false);
@@ -1174,7 +1171,7 @@ export default function Voicestudio() {
         {/* Sentence Blocks Container */}
         <section className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-white">
           {/* Mobile and tablet sidebar toggle buttons */}
-          <div className="lg:hidden flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-white z-20">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-2 z-20 xl:hidden">
             <button
               type="button"
               onClick={() => setIsLeftSidebarOpen(true)}

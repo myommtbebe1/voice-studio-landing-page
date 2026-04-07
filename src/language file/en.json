@@ -153,8 +153,7 @@
     "voicestudio": {
       "newsAnchor": "News Anchor",
       "generatedJustNow": "Generated Just Now",
-      "addSentence": "Add New Sentence",
-      "generateFailed": "Generate failed"
+      "addSentence": "Add New Sentence"
     }
   },
   "voiceover": {

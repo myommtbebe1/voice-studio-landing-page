@@ -3,6 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRocket, faStar, faGem, faBan } from '@fortawesome/free-solid-svg-icons';
 import { useLanguage } from '../../../../hooks/useLanguage';
 
+const CREDITS_ICON_URL = 'https://voice.botnoi.ai/assets/img/Credits.svg';
+
 function PackageCardDetailed({ pkg, title, ctaLabel, t, formatPrice, onJoin, pointPerThbDefault = 90, multiplierDefault = 2.25, showAiToolsBullet = false, promoTotalMonths = null, durationLabel = null }) {
   const monthlyPoint = Number(pkg?.monthly_point ?? 0);
   const month = Number(pkg?.month ?? 0) || 1;
@@ -28,7 +30,7 @@ function PackageCardDetailed({ pkg, title, ctaLabel, t, formatPrice, onJoin, poi
 
       <div className="flex flex-col sm:flex-row justify-between gap-6 mb-4">
         <div className="flex items-start gap-3">
-          <span className="text-2xl text-indigo-500 font-black leading-none">P</span>
+          <img src={CREDITS_ICON_URL} alt="Credits" className="w-6 h-6 shrink-0" />
           <div>
             <p className="text-2xl font-black text-black tracking-tight">
               {monthlyPoint.toLocaleString()} <span className="text-base font-normal text-slate-700">{t('membership.ptPerMonth')}</span>
@@ -43,7 +45,7 @@ function PackageCardDetailed({ pkg, title, ctaLabel, t, formatPrice, onJoin, poi
       <div className="rounded-xl p-4 border-2 border-gray-100 bg-white/80 space-y-3">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <span className="text-xl text-indigo-500 font-black">P</span>
+            <img src={CREDITS_ICON_URL} alt="Credits" className="w-5 h-5 shrink-0" />
             <div>
               <p className="text-lg font-black text-indigo-600">x{multiplierDisplay}</p>
               <p className="text-xs text-gray-500">({pointPerThb} {t('membership.pointsPerThb')})</p>

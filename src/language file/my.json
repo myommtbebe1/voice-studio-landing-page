@@ -153,8 +153,7 @@
     "voicestudio": {
       "newsAnchor": "သတင်းထောက်",
       "generatedJustNow": "ယခုဖန်တီးထားသည်",
-      "addSentence": "စာကြောင်းအသစ်ထည့်ရန်",
-      "generateFailed": "ဖန်တီးမှု မအောင်မြင်ပါ"
+      "addSentence": "စာကြောင်းအသစ်ထည့်ရန်"
     }
   },
   "voiceover": {

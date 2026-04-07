@@ -103,12 +103,15 @@ export default function RightSidebar({ outputs, formatTime, isOpen = false, onCl
 
   return (
     <aside className={`
-      fixed lg:relative inset-y-0 right-0
-      flex flex-col shrink-0 z-50 lg:z-10
-      w-[85vw] max-w-[18rem] lg:w-72 lg:max-w-none
+      fixed xl:relative right-0
+      top-[80px] bottom-0 max-xl:max-h-[calc(100vh-80px)]
+      xl:top-auto xl:bottom-auto xl:h-full xl:max-h-none
+      flex min-h-0 min-w-0 flex-col shrink-0
+      z-50 xl:z-10
+      w-[85vw] max-w-[18rem] xl:w-72 xl:max-w-none
       bg-[#eef2ff] text-white border-l border-white/10
       transition-all duration-300 ease-in-out
-      ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+      ${isOpen ? 'translate-x-0' : 'translate-x-full xl:translate-x-0'}
     `}>
       {/* Header */}
       <div className="px-5 py-4 flex items-center justify-between border-b border-white/10">
@@ -121,7 +124,7 @@ export default function RightSidebar({ outputs, formatTime, isOpen = false, onCl
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-black/60 transition-colors"
+            className="xl:hidden flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-black/60 transition-colors hover:bg-white/20"
             aria-label="Close sidebar"
           >
             <span className="material-icons-round text-lg">close</span>
@@ -130,7 +133,7 @@ export default function RightSidebar({ outputs, formatTime, isOpen = false, onCl
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Download all voices (collapsible) */}
         <section className="px-5 py-5 border-b border-white/10">
           <button

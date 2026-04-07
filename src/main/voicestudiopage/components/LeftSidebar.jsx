@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { useLanguage } from "../../../hooks/useLanguage.js";
 import {
-  VOICE_FILTER_LANGUAGE_MAP,
   VOICE_FILTER_STYLE_OPTIONS,
   VOICE_FILTER_CATEGORY_OPTIONS,
   VOICE_FILTER_GENDER_AGE_OPTIONS,
@@ -24,7 +23,6 @@ export default function LeftSidebar({
   const [playingAudioId, setPlayingAudioId] = useState(null);
   const audioRefs = useRef({});
 
-  const [selectedLanguages, setSelectedLanguages] = useState([]);
   const [selectedStyles, setSelectedStyles] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedGenderAge, setSelectedGenderAge] = useState([]);
@@ -46,11 +44,6 @@ export default function LeftSidebar({
 
   const toggleFilter = (filterType, value) => {
     switch (filterType) {
-      case "language":
-        setSelectedLanguages((prev) =>
-          prev.includes(value) ? prev.filter((l) => l !== value) : [...prev, value]
-        );
-        break;
       case "style":
         setSelectedStyles((prev) =>
           prev.includes(value) ? prev.filter((s) => s !== value) : [...prev, value]
@@ -78,11 +71,6 @@ export default function LeftSidebar({
 
   const handleSelectAll = (filterType) => {
     switch (filterType) {
-      case "language": {
-        const allLangs = Object.keys(VOICE_FILTER_LANGUAGE_MAP);
-        setSelectedLanguages((prev) => (prev.length === allLangs.length ? [] : [...allLangs]));
-        break;
-      }
       case "style":
         setSelectedStyles((prev) =>
           prev.length === VOICE_FILTER_STYLE_OPTIONS.length ? [] : [...VOICE_FILTER_STYLE_OPTIONS]
@@ -109,7 +97,6 @@ export default function LeftSidebar({
   };
 
   const clearAllFilters = () => {
-    setSelectedLanguages([]);
     setSelectedStyles([]);
     setSelectedCategories([]);
     setSelectedGenderAge([]);
@@ -121,24 +108,15 @@ export default function LeftSidebar({
     () => ({
       upperFilter: "all",
       searchQuery,
-      selectedLanguages,
       selectedStyles,
       selectedCategories,
       selectedGenderAge,
       selectedVersions,
     }),
-    [
-      searchQuery,
-      selectedLanguages,
-      selectedStyles,
-      selectedCategories,
-      selectedGenderAge,
-      selectedVersions,
-    ]
+    [searchQuery, selectedStyles, selectedCategories, selectedGenderAge, selectedVersions]
   );
 
   const activeFilterCount =
-    selectedLanguages.length +
     selectedStyles.length +
     selectedCategories.length +
     selectedGenderAge.length +
@@ -189,10 +167,10 @@ export default function LeftSidebar({
   };
 
   const filterBtnClass =
-    "w-full flex items-center justify-between gap-1 px-2.5 py-2 border border-indigo-200/80 rounded-lg text-xs font-medium text-slate-700 bg-white hover:bg-indigo-50/80 transition-colors";
+    "w-full min-w-0 flex items-center justify-between gap-0.5 px-1.5 py-1.5 border border-indigo-200/80 rounded-md text-[10px] leading-tight font-medium text-slate-700 bg-white hover:bg-indigo-50/80 transition-colors";
 
   const panelClass =
-    "absolute left-0 right-0 top-full mt-1 bg-white border border-indigo-100 rounded-lg shadow-lg z-[60] p-2 max-h-48 overflow-y-auto";
+    "absolute left-0 right-0 top-full z-[100] isolate mt-1 max-h-48 min-w-0 overflow-y-auto rounded-lg border border-slate-200 bg-white p-2 shadow-2xl ring-1 ring-black/5";
 
   const renderVoiceCard = (voice) => {
     const active = selectedVoiceId === voice.id;
@@ -281,13 +259,15 @@ export default function LeftSidebar({
   return (
     <aside
       className={`
-      fixed lg:relative inset-y-0 left-0
-      flex flex-col shrink-0 z-50 lg:z-10
+      fixed xl:relative left-0
+      top-[80px] bottom-0 max-xl:max-h-[calc(100vh-80px)]
+      xl:top-auto xl:bottom-auto xl:h-full xl:max-h-none
+      flex min-h-0 min-w-0 flex-col shrink-0
+      z-50 xl:z-10
       bg-[#eef2ff] border-r border-indigo-100
       transition-all duration-300 ease-in-out
-      w-72 lg:w-72 xl:w-72 2xl:w-80
-      max-h-[calc(100vh-80px)] lg:max-h-none
-      ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+      w-full xl:w-72 2xl:w-80
+      ${isOpen ? "translate-x-0" : "-translate-x-full xl:translate-x-0"}
     `}
     >
       <div className="shrink-0 px-3 lg:px-5 py-4 flex justify-between items-center border-b border-indigo-100/60">
@@ -298,16 +278,16 @@ export default function LeftSidebar({
         <button
           type="button"
           onClick={onClose}
-          className="lg:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-slate-600 transition-colors"
+          className="xl:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-slate-600 transition-colors"
           aria-label="Close sidebar"
         >
           <span className="material-icons-round text-lg">close</span>
         </button>
       </div>
 
-      <div className="shrink-0 px-2 lg:px-5 pt-3 pb-2 space-y-3 border-b border-indigo-100/40">
+      <div className="relative z-30 isolate shrink-0 bg-[#eef2ff] px-2 lg:px-5 pt-2 pb-1.5 space-y-1 border-b border-indigo-100/40">
         <div className="relative">
-          <span className="absolute left-3 top-2.5 text-indigo-400 material-icons-round text-sm">
+          <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-indigo-400 material-icons-round text-base leading-none">
             search
           </span>
           <input
@@ -315,12 +295,12 @@ export default function LeftSidebar({
             placeholder={t("voicestudio.leftSidebar.searchVoices")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-white border border-indigo-100 rounded-lg py-2 pl-9 pr-4 text-sm placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-700 shadow-sm transition-all"
+            className="w-full bg-white border border-indigo-100 rounded-md py-1 pl-8 pr-3 text-xs placeholder-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-700 shadow-sm transition-all"
           />
         </div>
 
-        <div ref={filterRef} className="relative space-y-2">
-          <div className="flex items-center justify-between gap-2 px-0.5">
+        <div ref={filterRef} className="relative">
+          <div className="flex items-center justify-between gap-2 px-0.5 mb-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
               {t("voicestudio.leftSidebar.filters")}
             </span>
@@ -335,245 +315,199 @@ export default function LeftSidebar({
             )}
           </div>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === "language" ? null : "language")}
-              className={filterBtnClass}
-            >
-              <span className="truncate">{t("voiceover.language")}</span>
-              <FontAwesomeIcon icon={faChevronDown} className="text-[10px] shrink-0 opacity-60" />
-            </button>
-            {openDropdown === "language" && (
-              <div className={panelClass}>
-                <div className="flex justify-between mb-1.5 px-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAll("language")}
-                    className="text-[10px] text-indigo-600 hover:underline"
-                  >
-                    {t("voiceover.selectAll")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedLanguages([])}
-                    className="text-[10px] text-slate-500 hover:underline"
-                  >
-                    {t("voiceover.clear")}
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 gap-0.5">
-                  {Object.entries(VOICE_FILTER_LANGUAGE_MAP).map(([code, { name, flag }]) => (
+          <div className="grid grid-cols-2 gap-1.5">
+            <div className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "style" ? null : "style")}
+                className={filterBtnClass}
+              >
+                <span className="truncate">{t("voiceover.style")}</span>
+                <FontAwesomeIcon icon={faChevronDown} className="text-[9px] shrink-0 opacity-60" />
+              </button>
+              {openDropdown === "style" && (
+                <div className={panelClass}>
+                  <div className="flex justify-between mb-1.5 px-0.5">
                     <button
-                      key={code}
                       type="button"
-                      onClick={() => toggleFilter("language", code)}
-                      className={`text-left px-2 py-1 rounded text-xs flex items-center gap-2 ${
-                        selectedLanguages.includes(code)
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
+                      onClick={() => handleSelectAll("style")}
+                      className="text-[10px] text-indigo-600 hover:underline"
                     >
-                      <span>{flag}</span>
-                      <span className="truncate">{name}</span>
+                      {t("voiceover.selectAll")}
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedStyles([])}
+                      className="text-[10px] text-slate-500 hover:underline"
+                    >
+                      {t("voiceover.clear")}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-0.5">
+                    {VOICE_FILTER_STYLE_OPTIONS.map((style) => (
+                      <button
+                        key={style}
+                        type="button"
+                        onClick={() => toggleFilter("style", style)}
+                        className={`text-left px-2 py-1 rounded text-xs truncate ${
+                          selectedStyles.includes(style)
+                            ? "bg-indigo-100 text-indigo-800"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {style}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === "style" ? null : "style")}
-              className={filterBtnClass}
-            >
-              <span className="truncate">{t("voiceover.style")}</span>
-              <FontAwesomeIcon icon={faChevronDown} className="text-[10px] shrink-0 opacity-60" />
-            </button>
-            {openDropdown === "style" && (
-              <div className={panelClass}>
-                <div className="flex justify-between mb-1.5 px-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAll("style")}
-                    className="text-[10px] text-indigo-600 hover:underline"
-                  >
-                    {t("voiceover.selectAll")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedStyles([])}
-                    className="text-[10px] text-slate-500 hover:underline"
-                  >
-                    {t("voiceover.clear")}
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 gap-0.5">
-                  {VOICE_FILTER_STYLE_OPTIONS.map((style) => (
+            <div className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
+                className={filterBtnClass}
+              >
+                <span className="truncate">{t("voiceover.category")}</span>
+                <FontAwesomeIcon icon={faChevronDown} className="text-[9px] shrink-0 opacity-60" />
+              </button>
+              {openDropdown === "category" && (
+                <div className={panelClass}>
+                  <div className="flex justify-between mb-1.5 px-0.5">
                     <button
-                      key={style}
                       type="button"
-                      onClick={() => toggleFilter("style", style)}
-                      className={`text-left px-2 py-1 rounded text-xs truncate ${
-                        selectedStyles.includes(style)
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
+                      onClick={() => handleSelectAll("category")}
+                      className="text-[10px] text-indigo-600 hover:underline"
                     >
-                      {style}
+                      {t("voiceover.selectAll")}
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCategories([])}
+                      className="text-[10px] text-slate-500 hover:underline"
+                    >
+                      {t("voiceover.clear")}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-0.5">
+                    {VOICE_FILTER_CATEGORY_OPTIONS.map((category) => (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => toggleFilter("category", category)}
+                        className={`text-left px-2 py-1 rounded text-xs truncate ${
+                          selectedCategories.includes(category)
+                            ? "bg-indigo-100 text-indigo-800"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === "category" ? null : "category")}
-              className={filterBtnClass}
-            >
-              <span className="truncate">{t("voiceover.category")}</span>
-              <FontAwesomeIcon icon={faChevronDown} className="text-[10px] shrink-0 opacity-60" />
-            </button>
-            {openDropdown === "category" && (
-              <div className={panelClass}>
-                <div className="flex justify-between mb-1.5 px-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAll("category")}
-                    className="text-[10px] text-indigo-600 hover:underline"
-                  >
-                    {t("voiceover.selectAll")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCategories([])}
-                    className="text-[10px] text-slate-500 hover:underline"
-                  >
-                    {t("voiceover.clear")}
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 gap-0.5">
-                  {VOICE_FILTER_CATEGORY_OPTIONS.map((category) => (
+            <div className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "genderAge" ? null : "genderAge")}
+                className={filterBtnClass}
+              >
+                <span className="truncate">{t("voiceover.genderAge")}</span>
+                <FontAwesomeIcon icon={faChevronDown} className="text-[9px] shrink-0 opacity-60" />
+              </button>
+              {openDropdown === "genderAge" && (
+                <div className={panelClass}>
+                  <div className="flex justify-between mb-1.5 px-0.5">
                     <button
-                      key={category}
                       type="button"
-                      onClick={() => toggleFilter("category", category)}
-                      className={`text-left px-2 py-1 rounded text-xs truncate ${
-                        selectedCategories.includes(category)
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
+                      onClick={() => handleSelectAll("genderAge")}
+                      className="text-[10px] text-indigo-600 hover:underline"
                     >
-                      {category}
+                      {t("voiceover.selectAll")}
                     </button>
-                  ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedGenderAge([])}
+                      className="text-[10px] text-slate-500 hover:underline"
+                    >
+                      {t("voiceover.clear")}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {VOICE_FILTER_GENDER_AGE_OPTIONS.map((option) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => toggleFilter("genderAge", option)}
+                        className={`px-1.5 py-1 rounded text-[11px] text-left truncate ${
+                          selectedGenderAge.includes(option)
+                            ? "bg-indigo-100 text-indigo-800"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === "genderAge" ? null : "genderAge")}
-              className={filterBtnClass}
-            >
-              <span className="truncate">{t("voiceover.genderAge")}</span>
-              <FontAwesomeIcon icon={faChevronDown} className="text-[10px] shrink-0 opacity-60" />
-            </button>
-            {openDropdown === "genderAge" && (
-              <div className={panelClass}>
-                <div className="flex justify-between mb-1.5 px-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAll("genderAge")}
-                    className="text-[10px] text-indigo-600 hover:underline"
-                  >
-                    {t("voiceover.selectAll")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedGenderAge([])}
-                    className="text-[10px] text-slate-500 hover:underline"
-                  >
-                    {t("voiceover.clear")}
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-0.5">
-                  {VOICE_FILTER_GENDER_AGE_OPTIONS.map((option) => (
+            <div className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setOpenDropdown(openDropdown === "version" ? null : "version")}
+                className={filterBtnClass}
+              >
+                <span className="truncate">{t("voiceover.version")}</span>
+                <FontAwesomeIcon icon={faChevronDown} className="text-[9px] shrink-0 opacity-60" />
+              </button>
+              {openDropdown === "version" && (
+                <div className={panelClass}>
+                  <div className="flex justify-between mb-1.5 px-0.5">
                     <button
-                      key={option}
                       type="button"
-                      onClick={() => toggleFilter("genderAge", option)}
-                      className={`px-2 py-1 rounded text-xs text-left ${
-                        selectedGenderAge.includes(option)
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
+                      onClick={() => handleSelectAll("version")}
+                      className="text-[10px] text-indigo-600 hover:underline"
                     >
-                      {option}
+                      {t("voiceover.selectAll")}
                     </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setOpenDropdown(openDropdown === "version" ? null : "version")}
-              className={filterBtnClass}
-            >
-              <span className="truncate">{t("voiceover.version")}</span>
-              <FontAwesomeIcon icon={faChevronDown} className="text-[10px] shrink-0 opacity-60" />
-            </button>
-            {openDropdown === "version" && (
-              <div className={panelClass}>
-                <div className="flex justify-between mb-1.5 px-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleSelectAll("version")}
-                    className="text-[10px] text-indigo-600 hover:underline"
-                  >
-                    {t("voiceover.selectAll")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedVersions([])}
-                    className="text-[10px] text-slate-500 hover:underline"
-                  >
-                    {t("voiceover.clear")}
-                  </button>
-                </div>
-                <div className="space-y-0.5">
-                  {VOICE_FILTER_VERSION_OPTIONS.map((version) => (
                     <button
-                      key={version}
                       type="button"
-                      onClick={() => toggleFilter("version", version)}
-                      className={`w-full px-2 py-1 rounded text-xs text-left ${
-                        selectedVersions.includes(version)
-                          ? "bg-indigo-100 text-indigo-800"
-                          : "text-slate-700 hover:bg-slate-50"
-                      }`}
+                      onClick={() => setSelectedVersions([])}
+                      className="text-[10px] text-slate-500 hover:underline"
                     >
-                      {version}
+                      {t("voiceover.clear")}
                     </button>
-                  ))}
+                  </div>
+                  <div className="space-y-0.5">
+                    {VOICE_FILTER_VERSION_OPTIONS.map((version) => (
+                      <button
+                        key={version}
+                        type="button"
+                        onClick={() => toggleFilter("version", version)}
+                        className={`w-full px-2 py-1 rounded text-xs text-left ${
+                          selectedVersions.includes(version)
+                            ? "bg-indigo-100 text-indigo-800"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        {version}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-2 lg:px-5 py-3 pb-5">
+      <div className="relative z-0 flex-1 min-h-0 overflow-y-auto overscroll-contain px-2 lg:px-5 pt-4 pb-5">
         {isLoading && (
           <div className="flex items-center justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>

@@ -11,7 +11,7 @@ export default function VoiceStudioSkeleton() {
 
       <main className="flex flex-1 overflow-hidden relative min-h-0">
         {/* Left column - Voice Library skeleton */}
-        <aside className="hidden lg:flex flex-col shrink-0 w-72 xl:w-72 2xl:w-80 bg-[#eef2ff] border-r border-indigo-100">
+        <aside className="hidden xl:flex flex-col shrink-0 w-72 2xl:w-80 bg-[#eef2ff] border-r border-indigo-100">
           <div className="px-3 lg:px-5 py-5">
             <div className="h-4 w-28 skeleton rounded" />
           </div>
@@ -35,7 +35,7 @@ export default function VoiceStudioSkeleton() {
 
         {/* Center column - Editor / Sentence blocks skeleton */}
         <section className="flex-1 flex flex-col bg-white relative min-w-0 overflow-hidden">
-          <div className="lg:hidden flex items-center justify-between px-4 py-2 border-b border-slate-200">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2 xl:hidden">
             <div className="h-10 w-10 rounded-lg skeleton" />
             <div className="h-10 w-10 rounded-lg skeleton" />
           </div>
@@ -75,7 +75,7 @@ export default function VoiceStudioSkeleton() {
         </section>
 
         {/* Right column - Output Deck skeleton */}
-        <aside className="hidden lg:flex flex-col shrink-0 w-72 bg-[#eef2ff] border-l border-indigo-100">
+        <aside className="hidden xl:flex flex-col shrink-0 w-72 bg-[#eef2ff] border-l border-indigo-100">
           <div className="px-3 lg:px-5 py-5">
             <div className="h-4 w-28 skeleton rounded" />
           </div>

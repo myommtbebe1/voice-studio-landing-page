@@ -184,7 +184,7 @@ export default function PremiumPaymentModal({ isOpen, onClose, selectedPackage, 
             <div className="border-2 border-transparent bg-gradient-to-r from-purple-400 to-cyan-400 rounded-lg p-[2px]">
               <div className="bg-white rounded-lg p-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img src="https://voice-staging.botnoi.ai/assets/img/Real_point.svg" alt="Points" className="w-8 h-8 shrink-0" />
+                  <img src="https://voice.botnoi.ai/assets/img/Credits.svg" alt="Points" className="w-8 h-8 shrink-0" />
                   <div className="min-w-0">
                     <p className={`font-bold text-base ${isBogoSelected ? 'text-red-600' : 'text-purple-400'}`}>
                       {(isBogoSelected ? bogoDisplay.points : basePoints).toLocaleString()} PT
