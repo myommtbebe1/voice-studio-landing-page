@@ -4,14 +4,14 @@ import {AuthContext} from "../contexts/AuthContext.jsx"
 
 import React, { useContext } from "react";
 import App from "../App.jsx";
-import Register from "../main/Register.jsx";
-import LoginForm from "../main/LoginForm.jsx";
+import Register from "../main/Login and checkout/Register.jsx";
+import LoginForm from "../main/Login and checkout/LoginForm.jsx";
 import Home from "../main/Landing page/home.jsx";
 import VoiceStudio from "../main/voicestudiopage/voicestudio.jsx";
 import VoiceOver from "../main/voiceoverpage/VoiceOver.jsx";
 import PricingPage from "../main/pricing page/PricingPage.jsx";
-import PaymentPage from "../main/PaymentPage.jsx";
-import ReportPage from "../main/ReportPage.jsx";
+import PaymentPage from "../main/Login and checkout/PaymentPage.jsx";
+import ReportPage from "../main/Login and checkout/ReportPage.jsx";
 
 export default function AppWrapper()  {
     let  {authReady,user} = useContext(AuthContext);

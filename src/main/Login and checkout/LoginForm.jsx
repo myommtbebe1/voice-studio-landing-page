@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbar from "./Landing page/navbar"
+import Navbar from "../Landing page/navbar"
 import useSignin from '../hooks/useSignin';
 // import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';

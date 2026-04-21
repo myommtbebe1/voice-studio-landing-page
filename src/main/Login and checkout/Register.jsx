@@ -1,5 +1,5 @@
 import React from "react";
-import Navbar from "./Landing page/navbar"
+import Navbar from "../Landing page/navbar"
 import useSignup from "../hooks/useSignup";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

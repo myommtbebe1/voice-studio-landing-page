@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { faBars, faTimes, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // import LanguageButton from "../components/languagebutton";
-import useSignout from "../hooks/useSignout";
-import { AuthContext } from "../contexts/AuthContext";
-import { useLanguage } from "../hooks/useLanguage.js";
-import LanguageButton from "../components/languagebutton.jsx";
-import LoginForm from "./LoginForm.jsx"
+import useSignout from "../../hooks/useSignout";
+import { AuthContext } from "../../contexts/AuthContext";
+import { useLanguage } from "../../hooks/useLanguage.js";
+import LanguageButton from "../../components/languagebutton.jsx";
+import LoginForm from "../Login and checkout/LoginForm.jsx"
 
 function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
