@@ -1,7 +1,7 @@
 import React from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import {useLanguage} from "../hooks/useLanguage"
+import {useLanguage} from "../../hooks/useLanguage.js"
 
 function FQASection() {
   const{t}=useLanguage();

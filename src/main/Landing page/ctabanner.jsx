@@ -1,5 +1,5 @@
 import React from 'react'
-import {useLanguage} from "../hooks/useLanguage"
+import {useLanguage} from "../../hooks/useLanguage.js"
 
 function CtaBanner() {
   const{t}=useLanguage();

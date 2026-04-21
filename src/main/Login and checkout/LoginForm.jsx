@@ -1,9 +1,9 @@
 import React from 'react'
 import Navbar from "../Landing page/navbar"
-import useSignin from '../hooks/useSignin';
+import useSignin from '../../hooks/useSignin';
 // import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useLanguage } from '../hooks/useLanguage.js';
+import { useLanguage } from '../../hooks/useLanguage.js';
 
 
 export default function LoginForm({ isOpen, onClose}) {

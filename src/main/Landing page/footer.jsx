@@ -1,7 +1,7 @@
 import React from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEarthAmericas,faEnvelope,faPaperPlane } from "@fortawesome/free-solid-svg-icons";
-import { useLanguage } from "../hooks/useLanguage.js";
+import { useLanguage } from "../../hooks/useLanguage.js";
 
 function Footer() {
   const { t } = useLanguage();

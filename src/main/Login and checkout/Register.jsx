@@ -1,9 +1,9 @@
 import React from "react";
 import Navbar from "../Landing page/navbar"
-import useSignup from "../hooks/useSignup";
+import useSignup from "../../hooks/useSignup";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLanguage } from "../hooks/useLanguage.js";
+import { useLanguage } from "../../hooks/useLanguage.js";
 
 
 function Register() {

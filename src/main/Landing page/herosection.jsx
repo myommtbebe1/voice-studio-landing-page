@@ -1,15 +1,15 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { faCirclePlay } from "@fortawesome/free-solid-svg-icons";
-import { useLanguage } from "../hooks/useLanguage.js";
+import { useLanguage } from "../../hooks/useLanguage.js";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext.jsx";
-import { getBotnoiToken } from "../firebase/botnoi.js";
-import { generateVoice, getAllSpeakers } from "../firebase/voiceApi.js";
+import { AuthContext } from "../../contexts/AuthContext.jsx";
+import { getBotnoiToken } from "../../firebase/botnoi.js";
+import { generateVoice, getAllSpeakers } from "../../firebase/voiceApi.js";
 
-import "../App.css";
+import "../../App.css";
 
 function HeroSection() {
   const { t } = useLanguage();

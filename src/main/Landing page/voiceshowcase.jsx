@@ -1,8 +1,8 @@
 import React from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faArrowRight} from "@fortawesome/free-solid-svg-icons"
-import CardVoiceSample from '../components/cardvoicesample';
-import { useLanguage } from '../hooks/useLanguage.js';
+import CardVoiceSample from '../../components/cardvoicesample';
+import { useLanguage } from '../../hooks/useLanguage.js';
 
 function VoiceShowcase() {
   const { t } = useLanguage();

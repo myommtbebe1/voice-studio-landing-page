@@ -1,6 +1,6 @@
 import React from 'react'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useLanguage } from "../hooks/useLanguage.js";
+import { useLanguage } from "../../hooks/useLanguage.js";
 
 import { faLanguage, faMicrophone,faSliders,faCopyright } from '@fortawesome/free-solid-svg-icons';
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useLanguage } from '../hooks/useLanguage.js';
+import { useLanguage } from '../../hooks/useLanguage.js';
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faArrowRight} from "@fortawesome/free-solid-svg-icons";
