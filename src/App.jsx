@@ -2,7 +2,7 @@
 import { Outlet } from "react-router-dom";
 import "./App.css";
 
-import Navbar from "./main/navbar"
+import Navbar from "./main/Landing page/navbar"
 import ScrollToTopButton from "./components/ScrollToTopButton";
 
 

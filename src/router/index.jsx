@@ -6,7 +6,7 @@ import React, { useContext } from "react";
 import App from "../App.jsx";
 import Register from "../main/Register.jsx";
 import LoginForm from "../main/LoginForm.jsx";
-import Home from "../main/home.jsx";
+import Home from "../main/Landing page/home.jsx";
 import VoiceStudio from "../main/voicestudiopage/voicestudio.jsx";
 import VoiceOver from "../main/voiceoverpage/VoiceOver.jsx";
 import PricingPage from "../main/pricing page/PricingPage.jsx";
