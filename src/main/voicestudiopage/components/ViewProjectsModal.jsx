@@ -8,8 +8,8 @@ export default function ViewProjectsModal({
   projects = [],
   currentProject = null,
   onSelectProject = null,
-  onDeleteProject = null,      // ✅ NEW
-  isDeleting = false,          // ✅ NEW (optional)
+  onDeleteProject = null,      
+  isDeleting = false,          
 }) {
   const { t } = useLanguage();
   const [deletingId, setDeletingId] = useState(null);
@@ -28,7 +28,7 @@ export default function ViewProjectsModal({
   };
 
   const handleDelete = async (e, project, isCurrent) => {
-    e.stopPropagation(); // ✅ prevent selecting when clicking delete
+    e.stopPropagation(); //  prevent selecting when clicking delete
 
     if (!project?.workspace_id) {
       alert("This project has no workspace_id yet. Please refresh and try again.");
@@ -104,15 +104,23 @@ export default function ViewProjectsModal({
                     (deletingId && deletingId === project.workspace_id);
 
                   return (
-                    <button
+                    <div
                       key={project.id || project.workspace_id}
-                      type="button"
+                      role="button"
+                      tabIndex={0}
                       onClick={() => handleSelectProject(project)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectProject(project);
+                        }
+                      }}
                       className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg border-2 transition-all text-left ${
                         isCurrent
                           ? "bg-blue-50 border-blue-300 hover:bg-blue-100"
                           : "bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300"
                       }`}
+                      aria-label={displayName(project.name)}
                     >
                       <span
                         className={`material-icons-round text-2xl ${
@@ -168,7 +176,7 @@ export default function ViewProjectsModal({
                       >
                         chevron_right
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>

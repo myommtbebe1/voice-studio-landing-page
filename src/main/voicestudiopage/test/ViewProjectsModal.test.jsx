@@ -25,6 +25,7 @@ describe("ViewProjectsModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("confirm", vi.fn(() => true));
+    vi.stubGlobal("alert", vi.fn());
   });
 
   it("renders projects and marks current one", () => {
@@ -86,5 +87,89 @@ describe("ViewProjectsModal", () => {
     expect(onDeleteProject).toHaveBeenCalledWith(
       expect.objectContaining({ workspace_id: "ws-2", name: "Beta" })
     );
+  });
+
+  it("does not delete when confirmation is cancelled", async () => {
+    const user = userEvent.setup();
+    globalThis.confirm.mockReturnValueOnce(false);
+    const onDeleteProject = vi.fn();
+
+    render(
+      <ViewProjectsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        currentProject={{ id: 1, workspace_id: "ws-1", name: "Alpha", type_workspace: "conversation" }}
+        projects={[{ id: 2, workspace_id: "ws-2", name: "Beta", type_workspace: "conversation" }]}
+        onDeleteProject={onDeleteProject}
+      />
+    );
+
+    const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+    await user.click(deleteButtons[1]);
+
+    expect(globalThis.confirm).toHaveBeenCalled();
+    expect(onDeleteProject).not.toHaveBeenCalled();
+  });
+
+  it("disables delete action when workspace_id is missing", async () => {
+    const user = userEvent.setup();
+    const onDeleteProject = vi.fn();
+
+    render(
+      <ViewProjectsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        currentProject={{ id: 1, workspace_id: "ws-1", name: "Alpha", type_workspace: "conversation" }}
+        projects={[{ id: 99, workspace_id: null, name: "Draft", type_workspace: "conversation" }]}
+        onDeleteProject={onDeleteProject}
+      />
+    );
+
+    const draftDelete = screen.getByTitle("This project has no workspace_id yet");
+    expect(draftDelete).toBeDisabled();
+    await user.click(draftDelete);
+
+    expect(onDeleteProject).not.toHaveBeenCalled();
+  });
+
+  it("disables delete buttons and shows deleting label while deleting", () => {
+    render(
+      <ViewProjectsModal
+        isOpen={true}
+        isDeleting={true}
+        onClose={vi.fn()}
+        currentProject={{ id: 1, workspace_id: "ws-1", name: "Alpha", type_workspace: "conversation" }}
+        projects={[{ id: 2, workspace_id: "ws-2", name: "Beta", type_workspace: "conversation" }]}
+        onDeleteProject={vi.fn()}
+      />
+    );
+
+    const deletingButtons = screen.getAllByRole("button", { name: "Deleting..." });
+    expect(deletingButtons.length).toBeGreaterThan(0);
+    deletingButtons.forEach((btn) => expect(btn).toBeDisabled());
+  });
+
+  it("selects project with Enter key and closes modal", async () => {
+    const user = userEvent.setup();
+    const onSelectProject = vi.fn();
+    const onClose = vi.fn();
+    const beta = { id: 2, workspace_id: "ws-2", name: "Beta", type_workspace: "conversation" };
+
+    render(
+      <ViewProjectsModal
+        isOpen={true}
+        onClose={onClose}
+        currentProject={{ id: 1, workspace_id: "ws-1", name: "Alpha", type_workspace: "conversation" }}
+        projects={[beta]}
+        onSelectProject={onSelectProject}
+      />
+    );
+
+    const betaRow = screen.getByRole("button", { name: "Display: Beta" });
+    betaRow.focus();
+    await user.keyboard("{Enter}");
+
+    expect(onSelectProject).toHaveBeenCalledWith(beta);
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

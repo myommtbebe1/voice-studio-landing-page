@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -47,7 +47,14 @@ vi.mock("../../../components/languagebutton.jsx", () => ({
 }));
 
 vi.mock("../../Login and checkout/LoginForm.jsx", () => ({
-  default: ({ isOpen }) => <div data-testid="login-form-state">{isOpen ? "OPEN" : "CLOSED"}</div>,
+  default: ({ isOpen, onClose }) => (
+    <div>
+      <div data-testid="login-form-state">{isOpen ? "OPEN" : "CLOSED"}</div>
+      <button type="button" onClick={onClose}>
+        CLOSE_LOGIN_FORM
+      </button>
+    </div>
+  ),
 }));
 
 function renderNavbar(user = null) {
@@ -60,9 +67,11 @@ function renderNavbar(user = null) {
   );
 }
 
+
 describe("Landing page Navbar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it("shows login UI when user is not authenticated", () => {
@@ -80,6 +89,98 @@ describe("Landing page Navbar", () => {
     await user.click(screen.getByRole("button", { name: "Log In" }));
 
     expect(screen.getByTestId("login-form-state")).toHaveTextContent("OPEN");
+  });
+
+  it("closes login modal when LoginForm calls onClose", async () => {
+    const user = userEvent.setup();
+    renderNavbar(null);
+
+    await user.click(screen.getByRole("button", { name: "Log In" }));
+    expect(screen.getByTestId("login-form-state")).toHaveTextContent("OPEN");
+
+    await user.click(screen.getByRole("button", { name: "CLOSE_LOGIN_FORM" }));
+    expect(screen.getByTestId("login-form-state")).toHaveTextContent("CLOSED");
+  });
+
+  it("opens mobile menu and closes it via close button", async () => {
+    const user = userEvent.setup();
+    renderNavbar(null);
+
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    expect(screen.getByRole("heading", { name: "Menu" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Close menu" }));
+    expect(screen.queryByRole("heading", { name: "Menu" })).not.toBeInTheDocument();
+  });
+
+  it("sets redirect target and opens login when guest clicks desktop Voice Studio", async () => {
+    const user = userEvent.setup();
+    renderNavbar(null);
+
+    await user.click(screen.getAllByText("Voice Studio")[0]);
+
+    expect(screen.getByTestId("login-form-state")).toHaveTextContent("OPEN");
+    expect(sessionStorage.getItem("redirectAfterLogin")).toBe("/VoiceStudio");
+  });
+
+  it("sets redirect target and opens login from mobile Voice Over button", async () => {
+    const user = userEvent.setup();
+    renderNavbar(null);
+
+    await user.click(screen.getByRole("button", { name: "Toggle menu" }));
+    await user.click(screen.getByRole("button", { name: "Voice Over" }));
+
+    expect(screen.queryByRole("heading", { name: "Menu" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("login-form-state")).toHaveTextContent("OPEN");
+    expect(sessionStorage.getItem("redirectAfterLogin")).toBe("/VoiceOver");
+  });
+
+  it("shows profile image for authenticated user and falls back to icon on error", () => {
+    const { container } = renderNavbar({ uid: "u-1", photoURL: "https://example.com/me.png" });
+
+    const profileImage = container.querySelector('button[aria-label="User profile"] img');
+    expect(profileImage).toBeInTheDocument();
+
+    fireEvent.error(profileImage);
+    expect(container.querySelector('button[aria-label="User profile"] img')).not.toBeInTheDocument();
+  });
+
+  it("resets profile image error when authenticated user identity changes", () => {
+    const { rerender, container } = render(
+      <MemoryRouter>
+        <AuthContext.Provider value={{ user: { uid: "u-1", photoURL: "https://example.com/one.png" }, authReady: true }}>
+          <Navbar />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    const firstImage = container.querySelector('button[aria-label="User profile"] img');
+    fireEvent.error(firstImage);
+    expect(container.querySelector('button[aria-label="User profile"] img')).not.toBeInTheDocument();
+
+    rerender(
+      <MemoryRouter>
+        <AuthContext.Provider value={{ user: { uid: "u-2", photoURL: "https://example.com/two.png" }, authReady: true }}>
+          <Navbar />
+        </AuthContext.Provider>
+      </MemoryRouter>
+    );
+
+    expect(container.querySelector('button[aria-label="User profile"] img')).toBeInTheDocument();
+  });
+
+  it("toggles points dropdown on hover for authenticated user", () => {
+    renderNavbar({ uid: "u-1" });
+
+    const pointsButton = screen.getByRole("button", { name: "100 Pts" });
+    const hoverContainer = pointsButton.closest("div");
+    expect(screen.queryByText("Point: 100 pts")).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(hoverContainer);
+    expect(screen.getByText("Point: 100 pts")).toBeInTheDocument();
+
+    fireEvent.mouseLeave(hoverContainer);
+    expect(screen.queryByText("Point: 100 pts")).not.toBeInTheDocument();
   });
 
   it("calls logout and navigates home for authenticated user", async () => {
