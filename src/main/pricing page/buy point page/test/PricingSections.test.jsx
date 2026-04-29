@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import PricingSections from '../PricingSections'
 
 vi.mock('../../../../hooks/useLanguage', () => ({
@@ -26,6 +26,13 @@ describe('PricingSections', () => {
   beforeEach(() => {
     sessionStorage.clear()
     localStorage.clear()
+  })
+  
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.clearAllTimers()
+    vi.useRealTimers()
   })
 
   it('renders hot deals section', () => {
@@ -77,4 +84,54 @@ describe('PricingSections', () => {
     await user.click(btn)
     expect(onViewSubscriptions).toHaveBeenCalledTimes(1)
   })
+  it('does not render View Subscriptions button when onViewSubscriptions is not provided', () => {
+    render(<PricingSections onPurchase={vi.fn()} />)
+  
+    expect(
+      screen.queryByRole('button', { name: 'View Subscriptions' })
+    ).not.toBeInTheDocument()
+  })
+  
+  it('does not throw when onPurchase is not provided and Claim is clicked', async () => {
+    const user = userEvent.setup()
+    render(<PricingSections />)
+  
+    const claimButtons = screen.getAllByRole('button', { name: 'Claim' })
+    await expect(user.click(claimButtons[0])).resolves.not.toThrow()
+  })
+  it('renders fallback hot deal packages when apiPackages is empty', () => {
+    render(<PricingSections onPurchase={vi.fn()} apiPackages={[]} />)
+  
+    expect(screen.getByText('200,000')).toBeInTheDocument()
+    expect(screen.getByText('80,000')).toBeInTheDocument()
+    expect(screen.getByText('30,000')).toBeInTheDocument()
+  })
+  
+  it('renders and purchases from provided apiPackages data', async () => {
+    const user = userEvent.setup()
+    const onPurchase = vi.fn()
+  
+    render(
+      <PricingSections
+        onPurchase={onPurchase}
+        apiPackages={[
+          { level: 2, points: 55555, price: 12.34, originalPrice: 15.99, coin_voicebot: 7 },
+        ]}
+      />
+    )
+  
+    expect(screen.getByText('55,555')).toBeInTheDocument()
+  
+    const claimButtons = screen.getAllByRole('button', { name: 'Claim' })
+    await user.click(claimButtons[0])
+  
+    expect(onPurchase).toHaveBeenCalledTimes(1)
+    expect(onPurchase.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        level: 2,
+        points: 55555,
+      })
+    )
+  })
+  
 })

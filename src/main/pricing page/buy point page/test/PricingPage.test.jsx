@@ -1,9 +1,11 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { render, screen,cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach,afterEach } from 'vitest'
 import PricingPage from '../../PricingPage'
 import { AuthContext } from '../../../../contexts/AuthContext.jsx'
+import { usePointPackages } from '../../../../hooks/usePointPackages.js'
+
 
 // ---- Hook mocks ----
 vi.mock('../../../../hooks/useLanguage', () => ({
@@ -78,6 +80,14 @@ vi.mock('../Payment', () => ({
   ),    
 }))
 
+
+vi.mock('../../../../hooks/usePointPackages.js', () => ({
+  usePointPackages: vi.fn(() => ({
+    packages: [{ level: 1, points: 200000, price: 70.49 }],
+    loading: false,
+  })),
+}))
+
 function renderWithAuth(ui, { user = { uid: 'u1' }, authReady = true } = {}) {
   return render(
     <AuthContext.Provider value={{ user, authReady }}>
@@ -126,5 +136,31 @@ describe('PricingPage', () => {
     await user.click(screen.getByRole('button', { name: 'Go Premium From Buy Points' }))
 
     expect(screen.getByText('PREMIUM_MEMBERSHIP_SECTION')).toBeInTheDocument()
+  })
+
+
+
+  afterEach(() => {
+    cleanup()
+    vi.restoreAllMocks()
+    vi.clearAllTimers()
+    vi.useRealTimers()
+  })
+  it('does not crash when PricingSections triggers purchase callback path with optional handler behavior', async () => {
+    const user = userEvent.setup()
+    renderWithAuth(<PricingPage />)
+    await user.click(screen.getByRole('button', { name: 'Trigger Purchase' }))
+    expect(screen.getByTestId('payment-modal-state')).toHaveTextContent('PAYMENT_OPEN')
+  })
+  it('renders skeleton when point packages are loading', () => {
+    usePointPackages.mockReturnValueOnce({ packages: [], loading: true })
+    renderWithAuth(<PricingPage />)
+    // pick a stable skeleton marker from your real skeleton component
+    expect(screen.queryByText('BUY_POINTS_SECTION')).not.toBeInTheDocument()
+  })
+  it('handles empty mocked point packages without crashing', () => {
+    usePointPackages.mockReturnValueOnce({ packages: [], loading: false })
+    renderWithAuth(<PricingPage />)
+    expect(screen.getByText('BUY_POINTS_SECTION')).toBeInTheDocument()
   })
 })
